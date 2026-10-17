@@ -1,0 +1,12 @@
+# Dépendances PHP
+/vendor/
+
+# Fichiers de configuration sensibles (mots de passe BDD)
+.env
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# IDE (VS Code)
+.vscode/
