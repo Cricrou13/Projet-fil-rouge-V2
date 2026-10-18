@@ -1,0 +1,40 @@
+@use "../../styles/mixins" as *;
+
+.stats-banner {
+  background-color: #FFFFFF;
+  border-bottom: 1px solid #F3F4F6;
+  padding: 1.75rem 1.5rem;
+
+  &__container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    text-align: center;
+
+    @include mobile {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.25rem;
+    }
+  }
+
+  &__item {
+    padding: 0.5rem;
+  }
+
+  &__value {
+    display: block;
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--color-fond);
+    margin-bottom: 0.25rem;
+  }
+
+  &__label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+  }
+}

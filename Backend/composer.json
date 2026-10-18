@@ -12,5 +12,7 @@
             "name": "Christophe"
         }
     ],
-    "require": {}
+    "require": {
+        "vlucas/phpdotenv": "^5.7"
+    }
 }

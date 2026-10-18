@@ -1,0 +1,62 @@
+@use "../../styles/variables" as *;
+.booking-stepper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-border, #E5E5E5);
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+    &-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #F1F5F9;
+      color: #64748B;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      font-weight: 700;
+      transition: all 0.2s ease;
+      border: 1.5px solid #E2E8F0;
+    }
+    &-label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #64748B;
+      transition: color 0.2s ease;
+      @media (max-width: 500px) {
+        display: none;
+      }
+    }
+    &.active {
+      .step-number {
+        background: var(--color-primary, #4338CA);
+        color: white;
+        border-color: var(--color-primary, #4338CA);
+        box-shadow: 0 4px 10px rgba(67, 56, 202, 0.25);
+      }
+      .step-label {
+        color: var(--color-primary, #4338CA);
+        font-weight: 700;
+      }
+    }
+    &.done {
+      .step-number {
+        background: #10B981;
+        color: white;
+        border-color: #10B981;
+      }
+      .step-label {
+        color: #10B981;
+      }
+    }
+  }
+}

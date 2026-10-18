@@ -1,0 +1,190 @@
+@use "../../styles/mixins" as *;
+
+.footer {
+  background-color: #F8FAFC;
+  border-top: 1px solid #E5E7EB;
+  padding-top: 3.5rem;
+  padding-bottom: 2rem;
+  color: #475569;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 2fr repeat(3, 1fr);
+    gap: 2.5rem;
+    margin-bottom: 3rem;
+
+    @include mobile {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+
+  /* Colonne Marque */
+  &__brand-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background-color: #1E293B;
+      color: #FFFFFF;
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-title {
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: #0F172A;
+
+      .logo-accent {
+        color: #2020B1;
+      }
+    }
+  }
+
+  &__desc {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: #545454;
+    max-width: 320px;
+  }
+
+  &__socials {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+
+    a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background-color: #F1F5F9;
+      color: #3C3C53;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background-color: #E2E8F0;
+        color: #0F172A;
+      }
+    }
+  }
+
+  /* Colonnes de liens */
+  &__col {
+    h4 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #0F172A;
+      margin-bottom: 1rem;
+      letter-spacing: -0.01em;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.625rem;
+    }
+
+    a {
+      font-size: 0.875rem;
+      color: #3C3C53;
+      text-decoration: none;
+      transition: color 0.15s ease;
+
+      &:hover {
+        color: #0F172A;
+      }
+
+      &.highlight-link {
+        color: var(--color-primary);
+        font-weight: 600;
+
+        &:hover {
+          color: #4338CA;
+        }
+      }
+    }
+
+    .legal-info {
+      font-size: 0.8125rem;
+      color: #3C3C53;
+    }
+  }
+
+  /* Rangée inférieure (Copyright) */
+  &__bottom {
+    padding-top: 1.5rem;
+    border-top: 1px solid #F1F5F9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8125rem;
+    color: #475569;
+
+    @include mobile {
+      flex-direction: column;
+      gap: 0.75rem;
+      text-align: center;
+    }
+
+      &-links {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      a {
+        color: #475569;
+        text-decoration: none;
+        transition: color 0.2s ease;
+        &:hover,
+        &:focus,
+        &:active {
+          color: var(--color-primary, #4338CA);
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+   .footer-cookie-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    // ✅ Passe en bleu au survol, au clic et quand il a le focus
+    &:hover,
+    &:focus,
+    &:active {
+      color: var(--color-primary, #4338CA) !important;
+      text-decoration: underline;
+    }
+  }
+}

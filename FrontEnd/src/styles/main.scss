@@ -1,0 +1,17 @@
+@import 'variables';
+@import 'mixins';
+@import 'base';
+@import 'global';
+
+@function couleur-metier($metier) {
+  @return map-get($metiers, $metier);
+}
+
+body {
+  background-color: var(--color-bg);
+  font-family: var(--font-family);
+  color: var(--color-text);
+  margin: 0;
+  display: flex;
+  justify-content: center;
+}

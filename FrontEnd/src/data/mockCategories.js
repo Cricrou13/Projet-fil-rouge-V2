@@ -1,0 +1,51 @@
+export const mockCategories = [
+  {
+    id: 1,
+    name: "Coiffure & Beauté",
+    icon: "✂️",
+    count: "84 pros",
+    query: "coiffure",
+  },
+  {
+    id: 2,
+    name: "Plomberie & Eau",
+    icon: "🔧",
+    count: "62 pros",
+    query: "plomberie",
+  },
+  {
+    id: 3,
+    name: "Terrassement & BTP",
+    icon: "🚜",
+    count: "29 pros",
+    query: "terrassement",
+  },
+  {
+    id: 4,
+    name: "Électricité",
+    icon: "⚡",
+    count: "45 pros",
+    query: "electricite",
+  },
+  {
+    id: 5,
+    name: "Peinture & Déco",
+    icon: "🎨",
+    count: "38 pros",
+    query: "peinture",
+  },
+  {
+    id: 6,
+    name: "Espaces Verts",
+    icon: "🌳",
+    count: "51 pros",
+    query: "espaces-verts",
+  },
+  {
+    id: 7,
+    name: "Développeur",
+    icon: "💻",
+    count: "60 pros",
+    query : "informatique",
+  },
+];

@@ -1,0 +1,152 @@
+.header {
+  width: 100%;
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  
+  /* MODIFICATIONS ICI */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    /* position: relative;  <-- Retiré */
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.25rem;
+    color: #1f2937;
+
+    .logo-box {
+      background-color: #4f46e5;
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-text .blue {
+      color: #4f46e5;
+    }
+  }
+
+  &__burger {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: #1f2937;
+    padding: 0 0.5rem;
+  }
+
+  &__menu {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+  }
+
+  &__nav {
+    display: flex;
+    gap: 1.5rem;
+
+    a {
+      text-decoration: none;
+      color: #4b5563;
+      font-weight: 500;
+
+      &:hover {
+        color: #4f46e5;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .btn-pro {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+      background-color: #f3f4f6;
+      color: #374151;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+      background-color: #4f46e5;
+      color: white;
+      font-weight: 500;
+    }
+  }
+}
+
+/* --- VERSION MOBILE --- */
+@media (max-width: 768px) {
+  .header {
+    overflow: visible !important;
+
+    &__burger {
+      display: block !important;
+    }
+
+    &__menu {
+      display: none; 
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      width: 100%;
+      background-color: #ffffff;
+      flex-direction: column;
+      padding: 1.5rem;
+      gap: 1.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      z-index: 9999; 
+
+      &.is-open {
+        display: flex !important;
+      }
+    }
+
+    &__nav {
+      flex-direction: column;
+      width: 100%;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    &__actions {
+      flex-direction: column;
+      width: 100%;
+      gap: 0.75rem;
+
+      .btn-pro, 
+      .btn-primary {
+        width: 100%;
+        text-align: center;
+        display: block;
+      }
+    }
+  }
+}

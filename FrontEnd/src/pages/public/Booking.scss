@@ -1,0 +1,268 @@
+@use "../../styles/variables" as *;
+.booking-page {
+  background-color: var(--color-bg, #FAFAFA);
+  min-height: calc(100vh - 80px);
+  padding: 2.5rem 1rem;
+}
+.booking-container {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+/* CARTE PRO EN-TÊTE */
+.booking-pro-header {
+  background: white;
+  border: 1px solid var(--color-border, #E5E5E5);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  .pro-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 12px;
+    border: 1.5px solid transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .pro-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    .pro-title-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      h2 {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--color-text, #171717);
+        margin: 0;
+      }
+      .pro-tag {
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 3px 10px;
+        border-radius: 20px;
+      }
+    }
+    .pro-meta-line {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.85rem;
+      color: var(--color-text-secondary, #475569);
+      span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      }
+    }
+  }
+}
+/* CARTE PRINCIPALE */
+.booking-card {
+  background: white;
+  border: 1px solid var(--color-border, #E5E5E5);
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  @media (max-width: 640px) {
+    padding: 1.5rem;
+  }
+  .step-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--color-text, #171717);
+    margin-bottom: 1.25rem;
+  }
+}
+/* ACTIONS BAS DU TUNNEL */
+.booking-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border, #E5E5E5);
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .btn-prev {
+    background: #F1F5F9;
+    color: var(--color-text, #171717);
+    border: 1px solid var(--color-border, #E5E5E5);
+    &:hover {
+      background: #E2E8F0;
+    }
+  }
+  .btn-next {
+    background: var(--color-primary, #4338CA);
+    color: white;
+    border: none;
+    &:hover:not(:disabled) {
+      background: var(--color-primary-hover, #3730A3);
+    }
+    &:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+  }
+  .btn-confirm {
+    background: #10B981;
+    color: white;
+    border: none;
+    &:hover {
+      background: #059669;
+    }
+  }
+}
+/* ÉCRAN DE SUCCÈS */
+.booking-success-card {
+  background: white;
+  border: 1px solid var(--color-border, #E5E5E5);
+  border-radius: 16px;
+  padding: 2.5rem 2rem;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  .success-badge-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #DCFCE7;
+    color: #10B981;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--color-text, #171717);
+    margin-bottom: 0.4rem;
+  }
+  .success-subtitle {
+    font-size: 0.95rem;
+    color: var(--color-text-secondary, #475569);
+    max-width: 460px;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+  }
+  .confirmation-ticket {
+    width: 100%;
+    max-width: 480px;
+    background: #F8FAFC;
+    border: 1px dashed #CBD5E1;
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    text-align: left;
+    margin-bottom: 2rem;
+    .ticket-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #E2E8F0;
+      margin-bottom: 0.75rem;
+      .ticket-id {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #64748B;
+        letter-spacing: 0.05em;
+      }
+      .ticket-status {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: #16A34A;
+      }
+    }
+    .ticket-body {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      .ticket-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.9rem;
+        .row-label {
+          color: var(--color-text-secondary, #475569);
+        }
+        .row-value {
+          font-weight: 600;
+          color: var(--color-text, #171717);
+          &.highlight {
+            color: var(--color-primary, #4338CA);
+          }
+          &.price {
+            font-size: 1.05rem;
+            color: #10B981;
+            font-weight: 800;
+          }
+        }
+      }
+    }
+  }
+  .success-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    a {
+      padding: 11px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .btn-go-appointments {
+      background: var(--color-primary, #4338CA);
+      color: white;
+      &:hover {
+        background: var(--color-primary-hover, #3730A3);
+      }
+    }
+    .btn-back-home {
+      background: #F1F5F9;
+      color: var(--color-text, #171717);
+      &:hover {
+        background: #E2E8F0;
+      }
+    }
+  }
+}
+/* RÉASSURANCE */
+.booking-trust {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+  .trust-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: #64748B;
+  }
+}

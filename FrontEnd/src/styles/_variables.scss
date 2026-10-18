@@ -1,0 +1,47 @@
+/* Variables CSS natifs (accessibles partout) */
+:root {
+  /* Neutres */
+  --color-bg: #FAFAFA;
+  --color-text: #171717;
+  --color-text-secondary: #475569;
+  --color-border: #E5E5E5;
+  --color-fond: #757575;
+
+  /* Actions & États */
+  --color-primary: #4338CA;
+  --color-secondary: #6666FF;
+  --color-primary-hover: #3730A3;
+  --color-button-bg: #EEF2FF;
+  --color-danger:  #EF4444;
+
+  /* Métiers */
+  --color-metier-coiffure: #DB2777;
+  --color-metier-electricite: #EA580C;
+  --color-metier-terrassement: #65A30D;
+  --color-metier-maconnerie: #585a58;
+  --color-metier-default: #4F46E5;
+
+  /* Typographie */
+  --font-family: 'Inter', sans-serif;
+  --font-size-h1: 24px;
+  --font-weight-h1: 700;
+  --font-size-h2: 18px;
+  --font-weight-h2: 600;
+  --font-size-body: 14px;
+  --font-weight-body: 400;
+  --font-size-label: 14px;
+  --font-weight-label: 500;
+
+  /* Map Sass pour générer des classes dynamiques */
+$metiers: (
+  "coiffure": #DB2777,      // Rose / Pink
+  "electricite": #EA580C,   // Orange
+  "terrassement": #65A30D,  // Vert pomme / Lime
+  "plomberie": #0284C7,     // Bleu ciel / Light blue
+  "peinture": #7C3AED,      // Violet / Purple
+  "jardinage": #16A34A,     // Vert forêt / Green
+  "nettoyage": #0D9488,     // Teal / Turqoise
+  "menuiserie": #D97706,    // Ambre / Dark Orange
+  "default": #4F46E5        // Indigo
+) !default;
+}

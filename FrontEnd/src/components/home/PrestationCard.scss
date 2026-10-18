@@ -1,0 +1,15 @@
+.prestation-card {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 1.25rem;
+
+  h4 {
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: var(--color-text-secondary);
+    margin-bottom: 0.25rem;
+  }
+}

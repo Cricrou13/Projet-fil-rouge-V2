@@ -1,0 +1,204 @@
+@use "../../styles/mixins" as *;
+
+.hero-search {
+  background: linear-gradient(180deg, rgba(238, 242, 255, 0.75) 0%, #FFFFFF 100%);
+  padding: 4.5rem 1.5rem 3.5rem;
+  border-bottom: 1px solid #F3F4F6;
+  text-align: center;
+
+  &__container {
+    max-width: 860px;
+    margin: 0 auto;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: lightgray;
+    color: var(--color-primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    margin-bottom: 1.5rem;
+
+    .badge-pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #10B981;
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+  }
+
+  &__title {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--color-text);
+    line-height: 1.25;
+    margin-bottom: 1rem;
+
+    @include mobile {
+      font-size: 1.65rem;
+    }
+  }
+
+  &__highlight {
+    background: linear-gradient(135deg, var(--color-primary), #2563EB 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  &__subtitle {
+    font-size: 1.05rem;
+    color: var(--color-text-secondary);
+    max-width: 640px;
+    margin: 0 auto 2.25rem;
+    line-height: 1.5;
+
+    @include mobile {
+      font-size: 0.95rem;
+    }
+  }
+
+  &__form {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 16px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-align: left;
+
+    @include mobile {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 0.75rem;
+    }
+  }
+
+  &__field {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 12px;
+    transition: background-color 0.2s ease;
+
+    &:hover, &:focus-within {
+      background-color: #F9FAFB;
+    }
+  }
+
+  &__icon {
+    color: var(--color-primary);
+    flex-shrink: 0;
+  }
+
+  &__input-wrap {
+    flex: 1;
+
+    label {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #4D5060;
+      margin-bottom: 0.15rem;
+    }
+
+    input {
+      width: 100%;
+      border: none;
+      background: transparent;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--color-text);
+      outline: none;
+
+      &::placeholder {
+        color: #4D5060;
+        font-weight: 400;
+      }
+    }
+  }
+
+  &__divider {
+    width: 1px;
+    height: 36px;
+    background-color: #E5E7EB;
+
+    @include mobile {
+      display: none;
+    }
+  }
+
+  &__btn {
+    background-color: var(--color-primary);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+
+    &:hover {
+      background-color: var(--color-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    @include mobile {
+      width: 100%;
+      margin-top: 0.5rem;
+    }
+  }
+
+  &__tags {
+    margin-top: 1.25rem;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+
+    .tags-label {
+      color: #9CA3AF;
+      font-weight: 600;
+    }
+
+    button {
+      background: #FFFFFF;
+      border: 1px solid #E5E7EB;
+      border-radius: 9999px;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background-color: #EEF2FF;
+        color: var(--color-primary);
+        border-color: #C7D2FE;
+      }
+    }
+  }
+}
