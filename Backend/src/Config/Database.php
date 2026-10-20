@@ -3,6 +3,14 @@
 declare(strict_types=1);
  
 namespace App\Config;
+
+use Dotenv\Dotenv;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+
+// fichier .env situé dans le dossier Backend
+$dotenv = Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
  
 use PDO;
 use RuntimeException;
