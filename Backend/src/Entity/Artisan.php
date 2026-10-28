@@ -1,111 +1,59 @@
 <?php
-// 1. En-têtes CORS et JSON
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Content-Type, Authorization");
-header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
-header("Content-Type: application/json; charset=UTF-8");
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-    http_response_code(200);
-    exit();
-}
+declare(strict_types=1);
 
-// 2. Connexion directe à la base de données (pour éliminer tout souci de require)
-$host = 'localhost';
-$dbname = 'infintime';
-$username = 'root';
-$password = '';
+namespace App\Entity;
 
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname;charset=utf8mb4", $username, $password, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-    ]);
-} catch (PDOException $e) {
-    echo json_encode([
-        "success" => false, 
-        "message" => "Erreur de connexion BDD : " . $e->getMessage()
-    ]);
-    exit();
-}
+use DateTimeImmutable;
 
-// 3. Récupération et validation de l'ID
-$id = $_GET['id'] ?? null;
-
-if (!$id || $id === 'undefined') {
-    echo json_encode([
-        "success" => false, 
-        "message" => "ID d'artisan invalide ou manquant."
-    ]);
-    exit();
-}
-
-try {
-    // 4. Récupération des informations combinées de l'artisan et de son compte utilisateur
-    $stmt = $pdo->prepare("
-        SELECT 
-            a.id_artisan,
-            a.id_artisan AS id,
-            a.nom_etablissement,
-            a.nom_etablissement AS nom_entreprise,
-            a.metier,
-            a.metier AS specialite,
-            a.siret,
-            a.description,
-            a.adresse_etablissement,
-            a.code_postal,
-            a.ville,
-            a.date_creation,
-            u.Id_utilisateur,
-            u.nom,
-            u.prenom,
-            u.email,
-            u.telephone
-        FROM Artisans a
-        INNER JOIN Utilisateurs u ON a.Id_utilisateur = u.Id_utilisateur
-        WHERE a.id_artisan = :id OR u.Id_utilisateur = :id
-    ");
-    $stmt->execute(['id' => $id]);
-    $artisan = $stmt->fetch();
-
-    if (!$artisan) {
-        echo json_encode([
-            "success" => false, 
-            "message" => "Aucun artisan trouvé avec l'ID " . $id
-        ]);
-        exit();
+final class Artisan
+{
+    public function __construct(
+        private ?int $idArtisan,
+        private string $nomEtablissement,
+        private string $metier,
+        private string $siret,
+        private string $description,
+        private string $adresseEtablissement,
+        private string $codePostal,
+        private string $ville,
+        private int $idUtilisateur,
+        private ?DateTimeImmutable $dateCreation,
+    ) {
     }
 
-    // 5. Récupération des prestations associées à cet artisan
-    $stmtPresta = $pdo->prepare("
-        SELECT 
-            id_prestation,
-            id_prestation AS id,
-            libelle,
-            libelle AS nom,
-            description,
-            tarif,
-            tarif AS prix,
-            duree_estimee,
-            duree_estimee AS duree,
-            actif,
-            id_artisan
-        FROM Prestations 
-        WHERE id_artisan = :id_artisan
-    ");
-    $stmtPresta->execute(['id_artisan' => $artisan['id_artisan']]);
-    $artisan['prestations'] = $stmtPresta->fetchAll();
+    public static function fromRow(array $row): self
+    {
+        return new self(
+            idArtisan: $row['id_artisan'] === null ? null : (int) $row['id_artisan'],
+            nomEtablissement: (string) $row['nom_etablissement'],
+            metier: (string) $row['metier'],
+            siret: (string) $row['siret'],
+            description: (string) $row['description'],
+            adresseEtablissement: (string) $row['adresse_etablissement'],
+            // varchar(10) : un (int) ferait perdre le zero initial d'un '07100'
+            codePostal: (string) $row['code_postal'],
+            ville: (string) $row['ville'],
+            idUtilisateur: (int) $row['Id_utilisateur'],
+            dateCreation: $row['date_creation'] === null
+                ? null
+                : new DateTimeImmutable((string) $row['date_creation']),
+        );
+    }
 
-    // 6. Réponse JSON finale
-    echo json_encode([
-        "success" => true, 
-        "artisan" => $artisan
-    ]);
-
-} catch (PDOException $e) {
-    echo json_encode([
-        "success" => false, 
-        "message" => "Erreur SQL : " . $e->getMessage()
-    ]);
+    public function toArray(): array
+    {
+        return [
+            'id_artisan' => $this->idArtisan,
+            'nom_etablissement' => $this->nomEtablissement,
+            'metier' => $this->metier,
+            'siret' => $this->siret,
+            'description' => $this->description,
+            'adresse_etablissement' => $this->adresseEtablissement,
+            'code_postal' => $this->codePostal,
+            'ville' => $this->ville,
+            'Id_utilisateur' => $this->idUtilisateur,
+            'date_creation' => $this->dateCreation?->format('Y-m-d H:i:s'),
+        ];
+    }
 }
-?>

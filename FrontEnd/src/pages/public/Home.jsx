@@ -22,14 +22,16 @@ export default function Home() {
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           const formattedPros = data.map((artisan) => ({
-            id: artisan.id_artisan || artisan.id,
-            name: artisan.nom_etablissement || artisan.nom || "Artisan Partenaire",
-            nom_etablissement: artisan.nom_etablissement || artisan.nom || "Artisan Partenaire",
-            metier: artisan.metier || "Artisan",
-            ville: artisan.ville || "Toulouse",
-            initials: (artisan.nom_etablissement || artisan.nom || "PR").substring(0, 2).toUpperCase(),
-            rating: artisan.note || 4.9,
-            startingPrice: artisan.tarif || "Sur devis",
+            id: artisan.id_artisan,
+            name: artisan.nom_etablissement,
+            nom_etablissement: artisan.nom_etablissement,
+            metier: artisan.metier,
+            ville: artisan.ville,
+            initials: artisan.nom_etablissement.slice(0, 2).toUpperCase(),
+            // Aucune table d'avis, aucune prestation rapportee par la route :
+            // null = "on ne sait pas", et ProCard masque alors le bloc.
+            rating: null,
+            startingPrice: null,
           }));
           setTopPros(formattedPros);
         } else {

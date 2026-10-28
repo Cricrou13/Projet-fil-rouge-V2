@@ -89,15 +89,15 @@ const initials = pro.initials || (proName ? proName.split(" ").map((n) => n[0]).
       )}
       
       <div className="pro-card__actions">
-        {pro.startingPrice === "Sur devis" ? (
-          <Link to="/devis" className="btn-book">
-            <FileText size={14} />
-            <span>Demander un devis</span>
-          </Link>
-        ) : (
+        {pro.startingPrice !== null && pro.startingPrice !== "Sur devis" ? (
           <Link to={`/reservation?pro=${proId}`} className="btn-book">
             <Calendar size={14} />
             <span>Prendre RDV</span>
+          </Link>
+        ) : (
+          <Link to="/devis" className="btn-book">
+            <FileText size={14} />
+            <span>Demander un devis</span>
           </Link>
         )}
         

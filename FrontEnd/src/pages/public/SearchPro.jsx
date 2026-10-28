@@ -31,16 +31,16 @@ export default function SearchPro() {
       .then((data) => {
         if (Array.isArray(data) && data.length > 0) {
           const formattedPros = data.map((artisan) => ({
-            id: artisan.id_artisan || artisan.id,
-            name: artisan.nom_etablissement || artisan.nom || "Artisan Partenaire",
-            nom_etablissement: artisan.nom_etablissement || artisan.nom || "Artisan Partenaire",
-            metier: artisan.metier || "Artisan",
-            ville: artisan.ville || "Toulouse",
-            codePostal: artisan.code_postal || "31000",
-            initials: (artisan.nom_etablissement || artisan.nom || "PR").substring(0, 2).toUpperCase(),
-            rating: artisan.note ? Number(artisan.note) : 4.9,
-            startingPrice: artisan.tarif || "Sur devis",
-            nextSlot: artisan.nextSlot || "Disponible",
+            id: artisan.id_artisan,
+            name: artisan.nom_etablissement,
+            nom_etablissement: artisan.nom_etablissement,
+            metier: artisan.metier,
+            ville: artisan.ville,
+            codePostal: artisan.code_postal,
+            initials: artisan.nom_etablissement.slice(0, 2).toUpperCase(),
+            rating: null,
+            startingPrice: null,
+            nextSlot: null,
             prestations: [],
           }));
           setPros(formattedPros);
@@ -103,26 +103,42 @@ export default function SearchPro() {
                 (pro.codePostal && pro.codePostal.includes(cityQuery));
               if (!matchCity) return false;
             }
-            if (minRating > 0 && pro.rating < minRating) return false;
-            if (typeFilter === "quote" && pro.startingPrice !== "Sur devis") return false;
-            if (typeFilter === "fixed" && pro.startingPrice === "Sur devis") return false;
+            // Une donnee inconnue ne doit jamais exclure un artisan : on ne
+            // filtre que ce qu'on sait reellement mesurer.
+            if (minRating > 0 && pro.rating !== null && pro.rating < minRating) return false;
+            if (
+              typeFilter === "quote" &&
+              pro.startingPrice !== null &&
+              pro.startingPrice !== "Sur devis"
+            )
+              return false;
+            if (
+              typeFilter === "fixed" &&
+              pro.startingPrice !== null &&
+              pro.startingPrice === "Sur devis"
+            )
+              return false;
             if (
               selectedDispo === "today" &&
-              !pro.nextSlot?.toLowerCase().includes("aujourd'hui")
+              pro.nextSlot !== null &&
+              !pro.nextSlot.toLowerCase().includes("aujourd'hui")
             )
               return false;
             if (
               selectedDispo === "tomorrow" &&
-              !pro.nextSlot?.toLowerCase().includes("demain")
+              pro.nextSlot !== null &&
+              !pro.nextSlot.toLowerCase().includes("demain")
             )
               return false;
             return true;
           })
           .sort((a, b) => {
-            if (sortBy === "rating") return b.rating - a.rating;
+            if (sortBy === "rating") return (b.rating ?? -1) - (a.rating ?? -1);
             if (sortBy === "price") {
-              const priceA = parseInt(a.startingPrice) || 999;
-              const priceB = parseInt(b.startingPrice) || 999;
+              // parseInt(null) -> NaN : la sentinelle fait descendre en bas de
+              // liste un artisan dont on ne connait pas le prix.
+              const priceA = parseInt(a.startingPrice) || 9999;
+              const priceB = parseInt(b.startingPrice) || 9999;
               return priceA - priceB;
             }
             return 0;

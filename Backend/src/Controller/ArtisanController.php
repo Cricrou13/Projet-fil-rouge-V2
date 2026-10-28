@@ -1,30 +1,33 @@
 <?php
+
+declare(strict_types=1);
+
 namespace App\Controller;
 
+use App\Entity\Artisan;
 use App\Repository\ArtisanRepository;
+use Throwable;
 
-class ArtisanController {
-    private $artisanRepository;
-
-    public function __construct(ArtisanRepository $artisanRepository) {
-        $this->artisanRepository = $artisanRepository;
+class ArtisanController extends AbstractController
+{
+    public function __construct(private ArtisanRepository $artisanRepository)
+    {
     }
 
-    public function topPros() {
+    public function topPros(): void
+    {
         try {
-            // On utilise la méthode findAll() de votre ArtisanRepository
-            $artisans = $this->artisanRepository->findAll(); 
-            
-            // En-tête pour indiquer que l'on renvoie du JSON
-            header('Content-Type: application/json; charset=UTF-8');
-            http_response_code(200);
-            
-            echo json_encode($artisans);
-            exit;
-        } catch (\Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error' => 'Erreur serveur : ' . $e->getMessage()]);
-            exit;
+            $payload = array_map(
+                static fn (Artisan $artisan): array => $artisan->toArray(),
+                $this->artisanRepository->findAll()
+            );
+            $status = 200;
+        } catch (Throwable $e) {
+            error_log('ArtisanController::topPros - ' . $e->getMessage());
+            $payload = ['error' => 'Service temporairement indisponible'];
+            $status = 500;
         }
+
+        $this->jsonResponse($payload, $status);
     }
 }
