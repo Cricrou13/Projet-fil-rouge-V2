@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import HeroSearch from "../../components/home/HeroSearch";
@@ -9,25 +10,45 @@ import ProCtaBanner from "../../components/home/ProCtaBanner";
 import Testimonials from "../../components/home/Testimonials";
 import { mockPros } from "../../data/mockPros";
 import "./Home.scss";
-
 export default function Home() {
-  // Sélectionne et trie les artisans par note décroissante, puis garde les 3 premiers
-  const topPros = [...mockPros]
-    .sort((a, b) => (b.note || 0) - (a.note || 0))
-    .slice(0, 3);
-
+  const [topPros, setTopPros] = useState([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetch("http://projet-fil-rouge-v2.test/index.php?route=artisans")
+      .then((res) => {
+        if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const formattedPros = data.map((artisan) => ({
+            id: artisan.id_artisan || artisan.id,
+            name: artisan.nom_etablissement || artisan.nom || "Artisan Partenaire",
+            nom_etablissement: artisan.nom_etablissement || artisan.nom || "Artisan Partenaire",
+            metier: artisan.metier || "Artisan",
+            ville: artisan.ville || "Toulouse",
+            initials: (artisan.nom_etablissement || artisan.nom || "PR").substring(0, 2).toUpperCase(),
+            rating: artisan.note || 4.9,
+            startingPrice: artisan.tarif || "Sur devis",
+          }));
+          setTopPros(formattedPros);
+        } else {
+          console.warn("⚠️ BDD vide ou données non reconnues, utilisation des mocks");
+          setTopPros(mockPros);
+        }
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.warn("⚠️ API BDD inaccessible, bascule sur les données de secours :", err.message);
+        setTopPros(mockPros);
+        setLoading(false);
+      });
+  }, []);
   return (
     <div className="home">
-      {/* 1. Hero avec recherche multi-critères */}
       <HeroSearch />
-
-      {/* 2. Chiffres clés de réassurance */}
       <StatsBanner />
-
-      {/* 3. Grille des métiers & catégories */}
       <CategoriesGrid />
-
-      {/* 4. Entrepreneurs recommandés */}
       <section className="home-pros-section">
         <div className="home-pros-section__container">
           <div className="home-pros-section__header">
@@ -41,22 +62,19 @@ export default function Home() {
               <ArrowRight size={16} />
             </Link>
           </div>
-
           <div className="home-pros-grid">
-            {topPros.map((pro) => (
-              <ProCard key={pro.id} pro={pro} />
-            ))}
+            {loading ? (
+              <p>Chargement des artisans...</p>
+            ) : topPros.length > 0 ? (
+              topPros.map((pro) => <ProCard key={pro.id} pro={pro} />)
+            ) : (
+              <p>Aucun artisan trouvé pour le moment.</p>
+            )}
           </div>
         </div>
       </section>
-
-      {/* 5. Comment ça marche en 3 étapes */}
       <HowItWorks />
-
-      {/* 6. Espace Pro / Artisans */}
       <ProCtaBanner />
-
-      {/* 7. Témoignages clients & pros */}
       <Testimonials />
     </div>
   );

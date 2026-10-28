@@ -14,93 +14,120 @@ const normalizeText = (text = "") =>
 
 export default function SearchPro() {
   const [searchParams, setSearchParams] = useSearchParams();
-
   const metierParam = searchParams.get("metier") || "";
   const villeParam = searchParams.get("ville") || "";
-
   const [metierInput, setMetierInput] = useState(metierParam);
   const [villeInput, setVilleInput] = useState(villeParam);
-
+  // 1. Nouvel état pour les artisans venant de la BDD
+  const [pros, setPros] = useState([]);
+  const [loading, setLoading] = useState(true);
+  // 2. Appel API vers la base de données MySQL
   useEffect(() => {
-    setMetierInput(metierParam);
-    setVilleInput(villeParam);
-  }, [metierParam, villeParam]);
-
-  const [selectedDispo, setSelectedDispo] = useState("all");
-  const [minRating, setMinRating] = useState(0);
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("default");
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    const params = new URLSearchParams();
-    if (metierInput.trim()) params.set("metier", metierInput.trim());
-    if (villeInput.trim()) params.set("ville", villeInput.trim());
-    setSearchParams(params);
-  };
-
-  const handleQuickTag = (tag) => {
-    setMetierInput(tag);
-    const params = new URLSearchParams();
-    if (tag) params.set("metier", tag);
-    if (villeInput.trim()) params.set("ville", villeInput.trim());
-    setSearchParams(params);
-  };
-
-  const handleReset = () => {
-    setMetierInput("");
-    setVilleInput("");
-    setSelectedDispo("all");
-    setMinRating(0);
-    setTypeFilter("all");
-    setSortBy("default");
-    setSearchParams({});
-  };
-
-  const filteredPros = useMemo(() => {
-    return mockPros
-      .filter((pro) => {
-        if (metierParam) {
-          const query = normalizeText(metierParam);
-          const matchMetier = normalizeText(pro.metier).includes(query);
-          const matchName = normalizeText(pro.name).includes(query);
-          if (!matchMetier && !matchName) return false;
-        }
-
-        if (villeParam) {
-          const cityQuery = normalizeText(villeParam);
-          const matchCity =
-            normalizeText(pro.ville).includes(cityQuery) ||
-            (pro.codePostal && pro.codePostal.includes(cityQuery));
-          if (!matchCity) return false;
-        }
-
-        if (minRating > 0 && pro.rating < minRating) return false;
-        if (typeFilter === "quote" && pro.startingPrice !== "Sur devis") return false;
-        if (typeFilter === "fixed" && pro.startingPrice === "Sur devis") return false;
-        if (
-          selectedDispo === "today" &&
-          !pro.nextSlot?.toLowerCase().includes("aujourd'hui")
-        )
-          return false;
-        if (
-          selectedDispo === "tomorrow" &&
-          !pro.nextSlot?.toLowerCase().includes("demain")
-        )
-          return false;
-
-        return true;
+    fetch("http://projet-fil-rouge-v2.test/index.php?route=artisans")
+      .then((res) => {
+        if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
+        return res.json();
       })
-      .sort((a, b) => {
-        if (sortBy === "rating") return b.rating - a.rating;
-        if (sortBy === "price") {
-          const priceA = parseInt(a.startingPrice) || 999;
-          const priceB = parseInt(b.startingPrice) || 999;
-          return priceA - priceB;
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const formattedPros = data.map((artisan) => ({
+            id: artisan.id_artisan || artisan.id,
+            name: artisan.nom_etablissement || artisan.nom || "Artisan Partenaire",
+            nom_etablissement: artisan.nom_etablissement || artisan.nom || "Artisan Partenaire",
+            metier: artisan.metier || "Artisan",
+            ville: artisan.ville || "Toulouse",
+            codePostal: artisan.code_postal || "31000",
+            initials: (artisan.nom_etablissement || artisan.nom || "PR").substring(0, 2).toUpperCase(),
+            rating: artisan.note ? Number(artisan.note) : 4.9,
+            startingPrice: artisan.tarif || "Sur devis",
+            nextSlot: artisan.nextSlot || "Disponible",
+            prestations: [],
+          }));
+          setPros(formattedPros);
+        } else {
+          setPros(mockPros); // Secours si la table est vide
         }
-        return 0;
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.warn("⚠️ API BDD inaccessible, repli sur les mocks :", err.message);
+        setPros(mockPros); // Secours en cas d'erreur
+        setLoading(false);
       });
-  }, [metierParam, villeParam, selectedDispo, minRating, typeFilter, sortBy]);
+  }, []);
+      useEffect(() => {
+        setMetierInput(metierParam);
+        setVilleInput(villeParam);
+      }, [metierParam, villeParam]);
+      const [selectedDispo, setSelectedDispo] = useState("all");
+      const [minRating, setMinRating] = useState(0);
+      const [typeFilter, setTypeFilter] = useState("all");
+      const [sortBy, setSortBy] = useState("default");
+      const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        const params = new URLSearchParams();
+        if (metierInput.trim()) params.set("metier", metierInput.trim());
+        if (villeInput.trim()) params.set("ville", villeInput.trim());
+        setSearchParams(params);
+      };
+      const handleQuickTag = (tag) => {
+        setMetierInput(tag);
+        const params = new URLSearchParams();
+        if (tag) params.set("metier", tag);
+        if (villeInput.trim()) params.set("ville", villeInput.trim());
+        setSearchParams(params);
+      };
+      const handleReset = () => {
+        setMetierInput("");
+        setVilleInput("");
+        setSelectedDispo("all");
+        setMinRating(0);
+        setTypeFilter("all");
+        setSortBy("default");
+        setSearchParams({});
+      };
+      // 3. Filtrage dynamique sur "pros" au lieu de "mockPros"
+      const filteredPros = useMemo(() => {
+        return pros
+          .filter((pro) => {
+            if (metierParam) {
+              const query = normalizeText(metierParam);
+              const matchMetier = normalizeText(pro.metier).includes(query);
+              const matchName = normalizeText(pro.name).includes(query);
+              if (!matchMetier && !matchName) return false;
+            }
+            if (villeParam) {
+              const cityQuery = normalizeText(villeParam);
+              const matchCity =
+                normalizeText(pro.ville).includes(cityQuery) ||
+                (pro.codePostal && pro.codePostal.includes(cityQuery));
+              if (!matchCity) return false;
+            }
+            if (minRating > 0 && pro.rating < minRating) return false;
+            if (typeFilter === "quote" && pro.startingPrice !== "Sur devis") return false;
+            if (typeFilter === "fixed" && pro.startingPrice === "Sur devis") return false;
+            if (
+              selectedDispo === "today" &&
+              !pro.nextSlot?.toLowerCase().includes("aujourd'hui")
+            )
+              return false;
+            if (
+              selectedDispo === "tomorrow" &&
+              !pro.nextSlot?.toLowerCase().includes("demain")
+            )
+              return false;
+            return true;
+          })
+          .sort((a, b) => {
+            if (sortBy === "rating") return b.rating - a.rating;
+            if (sortBy === "price") {
+              const priceA = parseInt(a.startingPrice) || 999;
+              const priceB = parseInt(b.startingPrice) || 999;
+              return priceA - priceB;
+            }
+            return 0;
+          });
+      }, [pros, metierParam, villeParam, selectedDispo, minRating, typeFilter, sortBy]);
 
   return (
     <div className="search-page">

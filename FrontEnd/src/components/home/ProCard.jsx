@@ -5,7 +5,8 @@ import { getMetierConfig } from "../../data/metiers";
 import "./ProCard.scss";
 
 export default function ProCard({ pro }) {
-  const initials = pro.initials || (pro.name ? pro.name.split(" ").map((n) => n[0]).join("") : "PRO");
+ const proName = pro.nom_etablissement || pro.name || "Artisan";
+const initials = pro.initials || (proName ? proName.split(" ").map((n) => n[0]).join("") : "PRO");
   
   // Récupération de la couleur du métier (Rose, Cyan, Ocre...)
   const config = getMetierConfig(pro.metier);
@@ -34,7 +35,7 @@ export default function ProCard({ pro }) {
           </div>
           <div className="pro-card__info">
             <div className="pro-card__name-wrap">
-              <h3 className="pro-card__name">{pro.name}</h3>
+             <h3 className="pro-card__name">{pro.nom_etablissement || pro.name}</h3>
               <CheckCircle2 size={15} className="verified-badge" />
             </div>
             {/* Badge métier coloré */}

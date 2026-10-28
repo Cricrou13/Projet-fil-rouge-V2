@@ -81,7 +81,7 @@ export default function ArtisanProfile() {
                     </div>
                     <div className="service-action">
                       <span className="price">{service.prix} €</span>
-                      <Link to={`/reserver/${artisan.id}?service=${service.id}`} className="btn-select">
+                      <Link to={`/reservation?pro=${artisan.id}&service=${service.id}`} className="btn-select">
                         Choisir
                       </Link>
                     </div>
@@ -118,7 +118,7 @@ export default function ArtisanProfile() {
           <div className="booking-card">
             <h3>Prendre rendez-vous</h3>
             <p>Réservez une prestation en quelques clics.</p>
-            <Link to={`/reserver/${artisan.id}`} className="btn-primary-large">
+            <Link to={`/reservation?pro=${artisan.id}`} className="btn-primary-large">
               Prendre RDV
             </Link>
 
