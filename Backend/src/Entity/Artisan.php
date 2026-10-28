@@ -19,6 +19,7 @@ final class Artisan
         private string $ville,
         private int $idUtilisateur,
         private ?DateTimeImmutable $dateCreation,
+        private ?string $tarifMin,
     ) {
     }
 
@@ -38,6 +39,10 @@ final class Artisan
             dateCreation: $row['date_creation'] === null
                 ? null
                 : new DateTimeImmutable((string) $row['date_creation']),
+            // decimal(15,2) : PDO (EMULATE_PREPARES=false) renvoie un string
+            // "25.00". Le caster en float pour de l'argent introduit une erreur
+            // binaire ; on garde la representation exacte, le front formate.
+            tarifMin: $row['tarif_min'] === null ? null : (string) $row['tarif_min'],
         );
     }
 
@@ -54,6 +59,7 @@ final class Artisan
             'ville' => $this->ville,
             'Id_utilisateur' => $this->idUtilisateur,
             'date_creation' => $this->dateCreation?->format('Y-m-d H:i:s'),
+            'tarif_min' => $this->tarifMin,
         ];
     }
 }

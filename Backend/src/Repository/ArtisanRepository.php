@@ -13,7 +13,15 @@ class ArtisanRepository extends AbstractRepository
      */
     public function findAll(): array
     {
-        $rows = $this->db->query('SELECT * FROM artisans')->fetchAll();
+        $sql = 'SELECT a.*, (
+                    SELECT MIN(p.tarif)
+                    FROM prestations p
+                    WHERE p.id_artisan = a.id_artisan
+                      AND p.actif = 1
+                ) AS tarif_min
+                FROM artisans a';
+
+        $rows = $this->db->query($sql)->fetchAll();
 
         return array_map(
             static fn (array $row): Artisan => Artisan::fromRow($row),

@@ -12,6 +12,17 @@ const normalizeText = (text = "") =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
+// "25.00" (string PHP) -> "25 €" ; null -> null, donc carte sans bloc prix.
+const formatTarif = (tarif) =>
+  tarif === null
+    ? null
+    : new Intl.NumberFormat("fr-FR", {
+        style: "currency",
+        currency: "EUR",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(Number(tarif));
+
 export default function SearchPro() {
   const [searchParams, setSearchParams] = useSearchParams();
   const metierParam = searchParams.get("metier") || "";
@@ -39,7 +50,9 @@ export default function SearchPro() {
             codePostal: artisan.code_postal,
             initials: artisan.nom_etablissement.slice(0, 2).toUpperCase(),
             rating: null,
-            startingPrice: null,
+            // Tarif reel : MIN() des prestations actives, null = 0 prestation
+            // tarifee, donc « sur devis » et plus un fallback.
+            startingPrice: formatTarif(artisan.tarif_min ?? null),
             nextSlot: null,
             prestations: [],
           }));

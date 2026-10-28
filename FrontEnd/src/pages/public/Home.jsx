@@ -10,6 +10,18 @@ import ProCtaBanner from "../../components/home/ProCtaBanner";
 import Testimonials from "../../components/home/Testimonials";
 import { mockPros } from "../../data/mockPros";
 import "./Home.scss";
+
+// "25.00" (string PHP) -> "25 €" ; null -> null, donc carte sans bloc prix.
+const formatTarif = (tarif) =>
+  tarif === null
+    ? null
+    : new Intl.NumberFormat("fr-FR", {
+        style: "currency",
+        currency: "EUR",
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }).format(Number(tarif));
+
 export default function Home() {
   const [topPros, setTopPros] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,10 +40,12 @@ export default function Home() {
             metier: artisan.metier,
             ville: artisan.ville,
             initials: artisan.nom_etablissement.slice(0, 2).toUpperCase(),
-            // Aucune table d'avis, aucune prestation rapportee par la route :
-            // null = "on ne sait pas", et ProCard masque alors le bloc.
+            // Aucune table d'avis n'existe en base : null = "on ne sait pas",
+            // et ProCard masque alors le bloc.
             rating: null,
-            startingPrice: null,
+            // Tarif reel : MIN() des prestations actives, null = 0 prestation
+            // tarifee, donc « sur devis » et plus un fallback.
+            startingPrice: formatTarif(artisan.tarif_min ?? null),
           }));
           setTopPros(formattedPros);
         } else {
