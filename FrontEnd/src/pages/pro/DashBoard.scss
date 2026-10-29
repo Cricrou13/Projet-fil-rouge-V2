@@ -312,7 +312,13 @@
     }
     .quote-actions {
       display: flex;
+      align-items: center;
       gap: 0.5rem;
+      .quote-traite {
+        font-size: 0.8rem;
+        color: #94A3B8;
+        font-style: italic;
+      }
       button {
         padding: 8px 14px;
         border-radius: 8px;
@@ -443,4 +449,47 @@
       transform: translateX(3px);
     }
   }
+}
+/* BANDEAU D'ÉTAT : dit d'où viennent les données, et pourquoi elles manquent. */
+.etat-carte {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #EFF6FF;
+  color: #1E40AF;
+  font-size: 0.85rem;
+
+  &.is-error {
+    background: #FEF2F2;
+    color: #B91C1C;
+  }
+}
+/* Le statut est un varchar libre, non standardisé en base : affiché tel quel. */
+.statut-badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #F1F5F9;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 600;
+  /* Pas de text-transform : le libelle est deja en casse humaine (libelleStatut). */
+}
+.mention {
+  margin: 0.5rem 0 0;
+  font-size: 0.78rem;
+  color: #64748B;
+}
+.btn-call.is-disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn-action-validate:disabled,
+.btn-action-finish:disabled,
+.btn-accept:disabled,
+.btn-decline:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
 }

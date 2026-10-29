@@ -9,18 +9,8 @@ import HowItWorks from "../../components/home/HowItWorks";
 import ProCtaBanner from "../../components/home/ProCtaBanner";
 import Testimonials from "../../components/home/Testimonials";
 import { mockPros } from "../../data/mockPros";
+import { formatTarif } from "../../utils/formatTarif";
 import "./Home.scss";
-
-// "25.00" (string PHP) -> "25 €" ; null -> null, donc carte sans bloc prix.
-const formatTarif = (tarif) =>
-  tarif === null
-    ? null
-    : new Intl.NumberFormat("fr-FR", {
-        style: "currency",
-        currency: "EUR",
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-      }).format(Number(tarif));
 
 export default function Home() {
   const [topPros, setTopPros] = useState([]);

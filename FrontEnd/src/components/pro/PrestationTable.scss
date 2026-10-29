@@ -32,6 +32,21 @@
   from { transform: translateY(-20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
+/* BANDEAU ETAT (chargement, erreur, lecture seule) */
+.readonly-banner {
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  color: #92400E;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+.readonly-banner.is-error {
+  background: #FEF2F2;
+  border-color: #FECACA;
+  color: #B91C1C;
+}
 /* EN-TÊTE */
 .page-header {
   display: flex;

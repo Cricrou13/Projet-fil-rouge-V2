@@ -23,11 +23,54 @@ class ArtisanController extends AbstractController
             );
             $status = 200;
         } catch (Throwable $e) {
-            error_log('ArtisanController::topPros - ' . $e->getMessage());
+            $this->logError(__METHOD__, $e);
             $payload = ['error' => 'Service temporairement indisponible'];
             $status = 500;
         }
 
         $this->jsonResponse($payload, $status);
+    }
+
+    /** Fiche publique, adressée par id_artisan (la clé des cartes du front). */
+    public function profil(int $idArtisan): void
+    {
+        $this->sendDetail(fn (): ?Artisan => $this->artisanRepository->find($idArtisan), __METHOD__);
+    }
+
+    /** Espace pro, adressé par Id_utilisateur : c'est la seule identité que la
+     *  réponse de connexion.php met à disposition du front. */
+    public function espacePro(int $idUtilisateur): void
+    {
+        $this->sendDetail(
+            fn (): ?Artisan => $this->artisanRepository->findByIdUtilisateur($idUtilisateur),
+            __METHOD__
+        );
+    }
+
+    /** @param string $methode nom de l'appelant, pour que le log nomme la route en echec */
+    private function sendDetail(callable $lecture, string $methode): void
+    {
+        try {
+            $artisan = $lecture();
+
+            if ($artisan === null) {
+                $payload = ['error' => 'Artisan non trouvé'];
+                $status = 404;
+            } else {
+                $payload = $artisan->toDetail();
+                $status = 200;
+            }
+        } catch (Throwable $e) {
+            $this->logError($methode, $e);
+            $payload = ['error' => 'Service temporairement indisponible'];
+            $status = 500;
+        }
+
+        $this->jsonResponse($payload, $status);
+    }
+
+    private function logError(string $methode, Throwable $e): void
+    {
+        error_log($methode . ' - ' . $e->getMessage());
     }
 }

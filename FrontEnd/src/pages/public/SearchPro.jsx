@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Search, MapPin, SlidersHorizontal, RotateCcw, Frown } from "lucide-react";
 import ProCard from "../../components/home/ProCard";
 import { mockPros } from "../../data/mockPros";
+import { formatTarif } from "../../utils/formatTarif";
 import "./SearchPro.scss";
 
 // Fonction utilitaire pour ignorer la casse et les accents
@@ -11,17 +12,6 @@ const normalizeText = (text = "") =>
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
-
-// "25.00" (string PHP) -> "25 €" ; null -> null, donc carte sans bloc prix.
-const formatTarif = (tarif) =>
-  tarif === null
-    ? null
-    : new Intl.NumberFormat("fr-FR", {
-        style: "currency",
-        currency: "EUR",
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 2,
-      }).format(Number(tarif));
 
 export default function SearchPro() {
   const [searchParams, setSearchParams] = useSearchParams();

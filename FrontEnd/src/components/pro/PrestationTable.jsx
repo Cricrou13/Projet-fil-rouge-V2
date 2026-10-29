@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { 
   Briefcase, 
   Clock, 
@@ -12,16 +12,34 @@ import {
   X,
   Sparkles
 } from "lucide-react";
-import { useOutletContext } from "react-router-dom";
 import "./Prestationtable.scss";
-import { mockPrestations } from "../../data/mockPrestations";
+import { useAuth } from "../../context/AuthContext";
+import { V2_API_URL } from "../../config/api";
+import { formatDuree } from "../../utils/formatDuree";
 
 export default function Prestations() {
 
-  const { metier = "default" } = useOutletContext() || {};
-  const metierData = mockPrestations[metier] || mockPrestations.default;
+  // L'espace pro s'identifie par Id_utilisateur : c'est la seule clé que la
+  // réponse de connexion.php met à disposition du front.
+  const { proUser } = useAuth();
+  const idUtilisateur = proUser?.Id_utilisateur ?? null;
 
-  const [prestations, setPrestations] = useState(metierData.prestations);
+  // `categorie` n'existe dans aucune table : la colonne reste affichee mais
+  // vide, et les onglets se rempliraient d'eux-memes le jour ou la colonne arrive.
+  const toLigne = (p) => ({
+    id: p.id_prestation,
+    nom: p.libelle,
+    categorie: null,
+    duree: formatDuree(p.duree_estimee),
+    prix: Number(p.tarif),
+    description: p.description || "Aucune description renseignée.",
+    // actif = 1 seulement : coté client, une prestation actif = null est deja
+    // exclue par le SQL, donc « masquee » est le seul affichage coherent.
+    enLigne: p.actif === true,
+  });
+
+  const [prestations, setPrestations] = useState([]);
+  const [etat, setEtat] = useState("chargement");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,19 +47,44 @@ export default function Prestations() {
   // Données du formulaire d'ajout
   const [newPresta, setNewPresta] = useState({
     nom: "",
-    categorie: metierData.categories[0] || "",
+    categorie: "",
     duree: "30 min",
     prix: "",
     description: "",
   });
-  // Les catégories dépendent désormais du métier actif
-  const categories = ["all", ...metierData.categories];
+
+  useEffect(() => {
+    if (idUtilisateur === null) {
+      setEtat("aucun-compte");
+      return;
+    }
+    fetch(`${V2_API_URL}?route=pro&id_utilisateur=${encodeURIComponent(idUtilisateur)}`)
+      .then((res) => {
+        // 404 = le compte existe mais n'a pas de ligne dans `artisans`
+        // (connexion.php ne filtre pas le role).
+        if (res.status === 404) throw new Error("404");
+        if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        setPrestations((data.prestations ?? []).map(toLigne));
+        setEtat("ok");
+      })
+      .catch((err) => {
+        console.warn("⚠️ Catalogue pro inaccessible :", err.message);
+        setPrestations([]);
+        setEtat(err.message === "404" ? "sans-fiche" : "erreur");
+      });
+  }, [idUtilisateur]);
+
+  // Les catégories dépendent des données : aucune colonne en base aujourd'hui.
+  const categories = ["all", ...new Set(prestations.map((p) => p.categorie).filter(Boolean))];
   // Filtrage combiné (catégorie + texte de recherche)
   const filteredPrestations = useMemo(() => {
     return prestations.filter((p) => {
       const matchCategory = selectedCategory === "all" || p.categorie === selectedCategory;
       const matchSearch = p.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          p.description.toLowerCase().includes(searchTerm.toLowerCase());
+                          (p.description || "").toLowerCase().includes(searchTerm.toLowerCase());
       return matchCategory && matchSearch;
     });
   }, [prestations, selectedCategory, searchTerm]);
@@ -50,13 +93,13 @@ export default function Prestations() {
     setPrestations((prev) =>
       prev.map((p) => (p.id === id ? { ...p, enLigne: !p.enLigne } : p))
     );
-    showToast("Statut de visibilité mis à jour.");
+    showToast("Visibilité modifiée à l'écran seulement : rien n'est écrit en base.");
   };
   // Supprimer une prestation
   const handleDelete = (id, nom) => {
     if (window.confirm(`Voulez-vous vraiment supprimer la prestation "${nom}" ?`)) {
       setPrestations((prev) => prev.filter((p) => p.id !== id));
-      showToast(`Prestation "${nom}" supprimée.`);
+      showToast(`"${nom}" retirée de l'affichage : la ligne en base est toujours là.`);
     }
   };
   // Soumission du formulaire d'ajout
@@ -76,12 +119,12 @@ export default function Prestations() {
     setIsModalOpen(false);
     setNewPresta({
       nom: "",
-      categorie: metierData.categories[0] || "",
+      categorie: "",
       duree: "30 min",
       prix: "",
       description: "",
     });
-    showToast(`Prestation "${created.nom}" ajoutée avec succès !`);
+    showToast(`"${created.nom}" ajoutée à l'affichage : non enregistrée en base.`);
   };
   const showToast = (msg) => {
     setNotification(msg);
@@ -97,6 +140,31 @@ export default function Prestations() {
           <span>{notification}</span>
         </div>
       )}
+      {/* ETAT DU CATALOGUE */}
+      {etat === "chargement" && (
+        <div className="readonly-banner">Chargement du catalogue depuis la base…</div>
+      )}
+      {etat === "aucun-compte" && (
+        <div className="readonly-banner is-error">
+          Aucun compte artisan identifié : reconnecte-toi pour charger ton catalogue.
+        </div>
+      )}
+      {etat === "erreur" && (
+        <div className="readonly-banner is-error">
+          Catalogue inaccessible : le backend V2 ne répond pas sur la route « pro ».
+        </div>
+      )}
+      {etat === "sans-fiche" && (
+        <div className="readonly-banner is-error">
+          Ce compte n’a pas de fiche artisan associée : il n’a pas de catalogue à gérer.
+        </div>
+      )}
+      {etat === "ok" && (
+        <div className="readonly-banner">
+          Catalogue chargé depuis la base. Les actions d’écriture ne sont pas encore
+          branchées : elles modifient l’affichage, pas la table prestations.
+        </div>
+      )}
       {/* EN-TÊTE DE LA PAGE */}
       <div className="page-header">
         <div className="header-text">
@@ -107,6 +175,8 @@ export default function Prestations() {
           type="button" 
           className="btn-add-presta" 
           onClick={() => setIsModalOpen(true)}
+          disabled
+          title="Écriture en base non disponible : la route d'ajout reste à créer"
         >
           <Plus size={18} />
           <span>Ajouter une prestation</span>
@@ -172,7 +242,9 @@ export default function Prestations() {
             {filteredPrestations.length === 0 ? (
               <tr>
                 <td colSpan={6} className="empty-table">
-                  Aucune prestation ne correspond à vos critères de recherche.
+                  {prestations.length > 0
+                    ? "Aucune prestation ne correspond à vos critères de recherche."
+                    : "Aucune prestation enregistrée pour ce compte artisan."}
                 </td>
               </tr>
             ) : (
@@ -183,7 +255,7 @@ export default function Prestations() {
                     <p className="desc">{p.description}</p>
                   </td>
                   <td>
-                    <span className="badge-cat">{p.categorie}</span>
+                    <span className="badge-cat">{p.categorie ?? "—"}</span>
                   </td>
                   <td className="td-duree">
                     <Clock size={15} />
@@ -198,6 +270,7 @@ export default function Prestations() {
                       className={`status-toggle ${p.enLigne ? "is-online" : "is-offline"}`}
                       onClick={() => handleToggleOnline(p.id)}
                       title={p.enLigne ? "Cliquer pour masquer" : "Cliquer pour afficher"}
+                      disabled
                     >
                       {p.enLigne ? <Eye size={14} /> : <EyeOff size={14} />}
                       <span>{p.enLigne ? "En ligne" : "Masqué"}</span>
@@ -209,6 +282,7 @@ export default function Prestations() {
                       className="btn-delete"
                       onClick={() => handleDelete(p.id, p.nom)}
                       title="Supprimer la prestation"
+                      disabled
                     >
                       <Trash2 size={16} />
                     </button>
@@ -257,7 +331,7 @@ export default function Prestations() {
                     value={newPresta.categorie}
                     onChange={(e) => setNewPresta({ ...newPresta, categorie: e.target.value })}
                   >
-                    {metierData.categories.map((cat) => (
+                    {categories.filter((cat) => cat !== "all").map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
@@ -309,7 +383,7 @@ export default function Prestations() {
                 >
                   Annuler
                 </button>
-                <button type="submit" className="btn-save">
+                <button type="submit" className="btn-save" disabled>
                   Enregistrer la prestation
                 </button>
               </div>

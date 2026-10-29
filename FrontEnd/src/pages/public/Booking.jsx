@@ -1,12 +1,10 @@
-import { Navigate, useSearchParams, useNavigate, useLocation, Link } from "react-router-dom";
+import { Navigate, useSearchParams, Link } from "react-router-dom";
 import { useState, useMemo, useEffect } from "react";
 import { 
-  Calendar, 
   ArrowLeft, 
   ArrowRight, 
   CheckCircle2, 
   ShieldCheck, 
-  Star, 
   MapPin,
   Clock
 } from "lucide-react";
@@ -15,46 +13,67 @@ import BookingStepper from "../../components/booking/BookingStepper";
 import ServiceSelector from "../../components/booking/ServiceSelector";
 import DateTimePicker from "../../components/booking/DateTimePicker";
 import BookingSummary from "../../components/booking/BookingSummary";
-import { mockPros } from "../../data/mockPros";
-import { mockServices } from "../../data/mockServices";
 import { getMetierConfig } from "../../data/metiers";
+import { formatDuree } from "../../utils/formatDuree";
 import "./Booking.scss";
 
 export default function Booking() {
   const { isClientConnected, clientUser } = useAuth();
   const [searchParams] = useSearchParams();
-  const location = useLocation();
-  const navigate = useNavigate();
 
-  // 1. Récupération de l'artisan (priorité à l'état passe via navigate, puis query param ?pro=X)
-  const proFromState = location.state?.pro;
-  const proId = Number(searchParams.get("pro")) || 1;
+  // 1. L'artisan vient de la base : ?pro= est un id_artisan, plus un index de mockPros.
+  const proId = Number(searchParams.get("pro")) || null;
+  const serviceId = Number(searchParams.get("service")) || null;
 
-  const currentPro = useMemo(() => {
-    if (proFromState) return proFromState;
-    return mockPros.find((p) => p.id === proId) || mockPros[0];
-  }, [proFromState, proId]);
+  const [artisan, setArtisan] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const metierConfig = getMetierConfig(currentPro.metier);
-
-  // 2. Services adaptés à l'artisan
-  const services = useMemo(() => {
-    if (currentPro.prestations && currentPro.prestations.length > 0) {
-      return currentPro.prestations.map((p, idx) => ({
-        id: idx + 1,
-        nom: p.name,
-        duree: p.duration || "30 min",
-        prix: parseInt(p.price) || 30
-      }));
+  useEffect(() => {
+    if (proId === null) {
+      setLoading(false);
+      return;
     }
-    return mockServices;
-  }, [currentPro]);
+    fetch(
+      `http://projet-fil-rouge-v2.test/index.php?route=artisan&id=${encodeURIComponent(proId)}`
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        setArtisan(data);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.warn("⚠️ Artisan du tunnel inaccessible :", err.message);
+        setArtisan(null);
+        setLoading(false);
+      });
+  }, [proId]);
+
+  // 2. Prestations reelles de l'artisan, au format attendu par le tunnel.
+  const services = useMemo(
+    () =>
+      (artisan?.prestations ?? []).map((prestation) => ({
+        id: prestation.id_prestation,
+        nom: prestation.libelle,
+        duree: formatDuree(prestation.duree_estimee),
+        prix: Number(prestation.tarif)
+      })),
+    [artisan]
+  );
 
   // États du tunnel
   const [step, setStep] = useState(1);
   const [service, setService] = useState(null);
   const [date, setDate] = useState("");
   const [heure, setHeure] = useState("");
+
+  // ?service= (lien "Choisir" de la fiche profil) préselectionne la prestation.
+  useEffect(() => {
+    const preset = services.find((s) => s.id === serviceId);
+    if (preset) setService(preset);
+  }, [services, serviceId]);
   
   // Remplissage automatique avec les données réelles du client connecté
   const [clientInfo, setClientInfo] = useState({
@@ -90,6 +109,35 @@ export default function Booking() {
     return <Navigate to="/connexion" replace />;
   }
 
+  if (loading) {
+    return (
+      <div className="booking-page">
+        <div className="booking-container">
+          <div className="booking-card">
+            <h3 className="step-title">Chargement de l'artisan...</h3>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Sans ?pro= valide ou sans réponse de la base, on n'invente aucun artisan.
+  if (!artisan || !artisan.nom_etablissement) {
+    return (
+      <div className="booking-page">
+        <div className="booking-container">
+          <div className="booking-card">
+            <h3 className="step-title">Artisan introuvable</h3>
+            <p>Choisissez un professionnel pour démarrer une réservation.</p>
+            <Link to="/recherche">Retour à la recherche</Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const metierConfig = getMetierConfig(artisan.metier);
+
   return (
     <div className="booking-page">
       <div className="booking-container">
@@ -103,23 +151,20 @@ export default function Booking() {
               borderColor: `${metierConfig.color}40`
             }}
           >
-            {currentPro.initials || currentPro.name.charAt(0)}
+            {artisan.nom_etablissement.charAt(0)}
           </div>
           <div className="pro-info">
             <div className="pro-title-line">
-              <h2>{currentPro.name}</h2>
+              <h2>{artisan.nom_etablissement}</h2>
               <span 
                 className="pro-tag"
                 style={{ backgroundColor: metierConfig.bgLight, color: metierConfig.color }}
               >
-                {currentPro.metier}
+                {metierConfig.label}
               </span>
             </div>
             <div className="pro-meta-line">
-              <span><MapPin size={14} /> {currentPro.ville}</span>
-              {currentPro.rating && (
-                <span><Star size={14} fill="#F59E0B" color="#F59E0B" /> {currentPro.rating} ({currentPro.reviewsCount || 24} avis)</span>
-              )}
+              <span><MapPin size={14} /> {artisan.ville}</span>
             </div>
           </div>
         </div>
@@ -132,7 +177,7 @@ export default function Booking() {
             </div>
             <h1>Rendez-vous confirmé !</h1>
             <p className="success-subtitle">
-              Votre réservation a bien été enregistrée et transmise à <strong>{currentPro.name}</strong>.
+              Votre réservation a bien été enregistrée et transmise à <strong>{artisan.nom_etablissement}</strong>.
             </p>
             <div className="confirmation-ticket">
               <div className="ticket-header">
@@ -150,7 +195,7 @@ export default function Booking() {
                 </div>
                 <div className="ticket-row">
                   <span className="row-label">Professionnel :</span>
-                  <span className="row-value">{currentPro.name} ({currentPro.ville})</span>
+                  <span className="row-value">{artisan.nom_etablissement} ({artisan.ville})</span>
                 </div>
                 <div className="ticket-row">
                   <span className="row-label">Tarif indicatif :</span>
@@ -177,11 +222,18 @@ export default function Booking() {
             {step === 1 && (
               <div className="step-content">
                 <h3 className="step-title">1. Choisissez votre prestation</h3>
-                <ServiceSelector 
-                  services={services} 
-                  selected={service} 
-                  onSelect={setService} 
-                />
+                {services.length > 0 ? (
+                  <ServiceSelector 
+                    services={services} 
+                    selected={service} 
+                    onSelect={setService} 
+                  />
+                ) : (
+                  <p>
+                    Cet artisan n'a publié aucune prestation.{" "}
+                    <Link to={`/artisan/${artisan.id_artisan}`}>Voir sa fiche</Link>
+                  </p>
+                )}
               </div>
             )}
 
@@ -206,7 +258,7 @@ export default function Booking() {
                   service={service} 
                   date={date} 
                   heure={heure} 
-                  pro={currentPro}
+                  pro={artisan}
                   clientInfo={clientInfo}
                   setClientInfo={setClientInfo}
                 />
