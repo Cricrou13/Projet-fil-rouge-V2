@@ -1,0 +1,234 @@
+@use "../../styles/mixins" as *;
+
+.page-contact {
+  background-color: var(--color-bg);
+  padding: 4rem 1.5rem 5rem;
+
+  &__container {
+    max-width: 680px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  &__header {
+    text-align: center;
+    margin-bottom: 2.25rem;
+  }
+
+  &__tag {
+    display: inline-block;
+    margin-bottom: 1rem;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    background-color: var(--color-button-bg);
+    color: var(--color-primary);
+    font-size: 0.875rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  &__title {
+    margin-bottom: 0.75rem;
+    color: var(--color-text);
+    font-size: 2.25rem;
+    font-weight: 800;
+    line-height: 1.25;
+    @include mobile {
+      font-size: 1.65rem;
+    }
+  }
+
+  &__subtitle {
+    color: var(--color-text-secondary);
+    font-size: 0.95rem;
+  }
+
+  &__coordonnees {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    @include mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__carte {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 1.15rem 1.25rem;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    color: var(--color-text);
+    text-decoration: none;
+    transition: all 0.2s ease;
+
+    svg {
+      color: var(--color-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    &:hover {
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.12);
+    }
+
+    &--statique {
+      &:hover {
+        border-color: #e5e7eb;
+        transform: none;
+        box-shadow: none;
+      }
+    }
+  }
+
+  &__carte-label {
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  &__carte-valeur {
+    color: var(--color-text);
+    font-size: 0.875rem;
+    font-weight: 600;
+    word-break: break-word;
+  }
+
+  &__card {
+    padding: 2rem;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    @include mobile {
+      padding: 1.5rem 1.25rem;
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+    @include mobile {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    text-align: left;
+
+    label {
+      color: var(--color-text);
+      font-size: 0.8125rem;
+      font-weight: 600;
+    }
+
+    input,
+    textarea {
+      padding: 0.85rem 1rem;
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      color: var(--color-text);
+      font-size: 0.875rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+
+      &::placeholder {
+        color: #9ca3af;
+      }
+
+      &:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+      }
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 130px;
+    }
+  }
+
+  &__envoi {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    padding: 0.95rem 1.5rem;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 12px;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: var(--color-primary-hover);
+      transform: translateY(-2px);
+    }
+
+    &--inerte {
+      background-color: #cbd5e1;
+      box-shadow: none;
+      cursor: not-allowed;
+      transform: none;
+
+      &:hover {
+        background-color: #cbd5e1;
+        transform: none;
+      }
+    }
+  }
+
+  &__action {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__aide {
+    color: #b45309;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  &__mention {
+    color: var(--color-text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+
+  &__devis {
+    margin-top: 1.5rem;
+    text-align: center;
+    color: var(--color-text-secondary);
+    font-size: 0.875rem;
+
+    a {
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+  }
+}

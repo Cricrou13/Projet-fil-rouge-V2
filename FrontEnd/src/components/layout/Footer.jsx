@@ -41,7 +41,7 @@ export default function Footer() {
             <h2>Pour les clients</h2>
             <ul>
               <li><Link to="/recherche">Rechercher un entrepreneur</Link></li>
-              <li><Link to="/contact">Demander un devis travaux</Link></li>
+              <li><Link to="/devis">Demander un devis travaux</Link></li>
             </ul>
           </div>
 

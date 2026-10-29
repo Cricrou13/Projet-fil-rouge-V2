@@ -1,22 +1,22 @@
 @use "../../styles/mixins" as *;
 
-.contact-page {
+.devis-page {
   background-color: var(--color-bg);
   min-height: calc(100vh - 72px);
   padding: 4rem 1.5rem 6rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  .contact-container {
+  .devis-container {
     max-width: 680px;
     width: 100%;
     margin: 0 auto;
   }
   /* En-tête */
-  .contact-header {
+  .devis-header {
     text-align: center;
     margin-bottom: 2.5rem;
-    .contact-tag {
+    .devis-tag {
       color: var(--color-primary);
       font-size: 0.875rem;
       font-weight: 800;
@@ -28,7 +28,7 @@
       border-radius: 9999px;
       margin-bottom: 1rem;
     }
-    .contact-title {
+    .devis-title {
       font-size: 2.25rem;
       font-weight: 800;
       color: var(--color-text);
@@ -38,13 +38,13 @@
         font-size: 1.65rem;
       }
     }
-    .contact-subtitle {
+    .devis-subtitle {
       color: var(--color-text-secondary);
       font-size: 0.95rem;
     }
   }
   /* Carte centrale blanche pour accueillir le formulaire */
-  .contact-card {
+  .devis-card {
     background: #FFFFFF;
     border: 1px solid #E5E7EB;
     border-radius: 20px;
@@ -55,7 +55,7 @@
     }
   }
   /* Sélecteur de type d'utilisateur (Particulier / Artisan) */
-  .contact-type-selector {
+  .devis-type-selector {
     display: flex;
     gap: 0.75rem;
     margin-bottom: 2rem;
@@ -93,7 +93,7 @@
     }
   }
   /* Formulaire */
-  .contact-form {
+  .devis-form {
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -139,40 +139,53 @@
         min-height: 130px;
       }
     }
-    /* Bouton d'envoi*/
-    .contact-submit-btn {
-      margin-top: 0.5rem;
-      background-color: var(--color-primary);
-      color: #FFFFFF;
-      border: none;
-      border-radius: 12px;
-      padding: 0.95rem 1.5rem;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-      &:hover {
-        background-color: var(--color-primary-hover);
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
-      }
-      &:active {
-        transform: translateY(0);
-      }
+  }
+  /* Gabarit du bouton d'envoi. Placé sous .devis-page et non sous
+     .devis-form : il habille aussi le <a> « Ouvrir ma messagerie » de l'étape
+     suivante, qui n'est pas un enfant du formulaire. */
+  .devis-submit-btn {
+    margin-top: 0.5rem;
+    background-color: var(--color-primary);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    padding: 0.95rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+    &:hover {
+      background-color: var(--color-primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+    }
+    &:active {
+      transform: translateY(0);
     }
   }
-  /* Écran de confirmation de succès */
-  .contact-success {
+  /* Étape « demande rédigée » — jamais « demande envoyée » */
+  .devis-envoi {
     text-align: center;
     padding: 2rem 1rem;
-    .success-icon {
-      color: #10B981;
+    &__icon {
+      color: #b45309;
       margin: 0 auto 1.25rem;
+    }
+    &__actions {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.9rem;
+      .devis-submit-btn {
+        margin-top: 0;
+      }
     }
     h3 {
       font-size: 1.4rem;

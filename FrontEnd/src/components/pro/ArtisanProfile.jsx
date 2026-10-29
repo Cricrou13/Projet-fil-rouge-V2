@@ -31,7 +31,9 @@ export default function ArtisanProfile() {
   if (!artisan) return <div className="error">Artisan introuvable.</div>;
 
   return (
-    <main className="artisan-profile-page">
+    // <div> et non <main> : la fiche est montée sous PublicLayout, qui fournit
+    // déjà le <main> de la page.
+    <div className="artisan-profile-page">
       {/* 1. EN-TÊTE DU PROFIL */}
       <section className="profile-header">
         <div className="header-info">
@@ -108,6 +110,6 @@ export default function ArtisanProfile() {
         </aside>
 
       </div>
-    </main>
+    </div>
   );
 }

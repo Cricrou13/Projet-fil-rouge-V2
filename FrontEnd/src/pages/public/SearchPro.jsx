@@ -346,7 +346,9 @@ export default function SearchPro() {
             </fieldset>
           </aside>
 
-          <main className="search-results-area">
+          {/* <section> nommée et non <main> : PublicLayout fournit déjà le <main>
+              de la page, et une région nommée reste un repère navigable. */}
+          <section className="search-results-area" aria-label="Résultats de la recherche">
             <h1 className="sr-only">Rechercher un professionnel ou un artisan</h1> {/* // Titre masqué à titre indicatif pour le lecteur// */}
             <div className="results-header">
               <h2 className="results-count">
@@ -386,7 +388,7 @@ export default function SearchPro() {
                 </button>
               </div>
             )}
-          </main>
+          </section>
         </div>
       </div>
     </div>

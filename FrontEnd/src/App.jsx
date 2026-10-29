@@ -11,10 +11,11 @@ import Planning from "./pages/pro/Agenda";
 import Prestations from "./components/pro/PrestationTable";
 import SectionIndisponible from "./pages/pro/SectionIndisponible";
 import ProLogin from "./pages/pro/ProLogin";
-import ContactPro from "./pages/public/ContactPro";
+import Devis from "./pages/public/Devis";
 import Login from "./pages/public/Login";
 import MyAppointments from "./pages/public/MyAppointments";
 import PageIntrouvable from "./pages/public/PageIntrouvable";
+import PageContact from "./pages/public/PageContact";
 import Register from "./pages/public/Register";
 import ArtisanProfile from './components/pro/ArtisanProfile';
 import PrivacyPolicy from "./pages/public/PrivacyPolicy";
@@ -32,7 +33,8 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/recherche" element={<SearchPro />} />
             <Route path="/reservation" element={<Booking />} />
-            <Route path="/devis" element={<ContactPro />} />
+            <Route path="/devis" element={<Devis />} />
+            <Route path="/contact" element={<PageContact />} />
             <Route path="/mes-rendez-vous" element={<MyAppointments/>} />
             <Route path="/connexion" element={<Auth/>} />
             <Route path="/politique-donnees" element={<PrivacyPolicy/>} />

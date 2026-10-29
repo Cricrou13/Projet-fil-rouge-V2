@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { API_BASE_URL } from '../../config/api';
 import { METIERS_SELECT } from '../../data/metiers';
@@ -8,9 +8,13 @@ import './Auth.scss';
 export default function Auth() {
   const { loginClient, loginPro } = useAuth();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
-  // État pour savoir quel onglet est actif : 'login' ou 'register'
-  const [activeTab, setActiveTab] = useState('login');
+  // L'onglet est DERIVE de l'URL et non stocké : `/connexion` et `/inscription`
+  // montent le même composant, donc React ne le remonte pas en passant de l'un à
+  // l'autre — un `useState('login')` ne se relancerait jamais et `/inscription`
+  // afficherait le formulaire de connexion sous un titre « Connexion ».
+  const activeTab = pathname === '/inscription' ? 'register' : 'login';
 
   // États pour le formulaire de connexion
   const [loginData, setLoginData] = useState({ email: '', password: '' });
@@ -102,7 +106,7 @@ export default function Auth() {
       if (data.success) {
         setMessage('Inscription réussie ! Vous pouvez vous connecter.');
         setTimeout(() => {
-          setActiveTab('login');
+          navigate('/connexion');
           setMessage('');
         }, 1500);
       } else {
@@ -114,21 +118,23 @@ export default function Auth() {
   };
 
   return (
-    <main className="auth-page">
+    // <div> et non <main> : PublicLayout fournit déjà le <main> de la page.
+    // ProLogin garde son <main> à lui, lui est monté hors de tout layout.
+    <div className="auth-page">
       <div className="auth-card">
         {/* En-tête avec les onglets */}
         <div className="auth-tabs">
           <button
             type="button"
             className={`tab-btn ${activeTab === 'login' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('login'); setMessage(''); setError(''); }}
+            onClick={() => { navigate('/connexion'); setMessage(''); setError(''); }}
           >
             Connexion
           </button>
           <button
             type="button"
             className={`tab-btn ${activeTab === 'register' ? 'active' : ''}`}
-            onClick={() => { setActiveTab('register'); setMessage(''); setError(''); }}
+            onClick={() => { navigate('/inscription'); setMessage(''); setError(''); }}
           >
             Inscription
           </button>
@@ -266,6 +272,6 @@ export default function Auth() {
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }
