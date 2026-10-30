@@ -14,7 +14,6 @@ import {
   Trash2,
 } from "lucide-react";
 import StatCard from "../../components/pro/StatCard";
-import { useAuth } from "../../context/AuthContext";
 import { getAgendaPro } from "../../config/api";
 import { formatTarif } from "../../utils/formatTarif";
 import { plageHoraires } from "../../utils/dateSemaine";
@@ -53,10 +52,8 @@ const ETATS = {
 };
 
 export default function Dashboard() {
-  // L'espace pro s'identifie par Id_utilisateur : la seule clé que la réponse de
-  // connexion.php laisse au front.
-  const { proUser } = useAuth();
-  const idUtilisateur = proUser?.Id_utilisateur ?? null;
+  // Aucune identité ne sort du front : la session du serveur désigne la fiche,
+  // le cookie part seul avec la requête.
 
   const [agenda, setAgenda] = useState(null);
   const [etat, setEtat] = useState("chargement");
@@ -66,12 +63,7 @@ export default function Dashboard() {
   const [notification, setNotification] = useState(null);
 
   useEffect(() => {
-    if (idUtilisateur === null) {
-      setEtat("aucun-compte");
-      return;
-    }
-
-    getAgendaPro(idUtilisateur)
+    getAgendaPro()
       .then((data) => {
         setAgenda(data);
         setEtat("ok");
@@ -79,9 +71,12 @@ export default function Dashboard() {
       .catch((err) => {
         console.warn("⚠️ Planning pro inaccessible :", err.message);
         setAgenda(null);
-        setEtat(err.message === "404" ? "sans-fiche" : "erreur");
+        // 404 = le compte connecté n'a pas de ligne dans `artisans`.
+        if (err.message === "404") setEtat("sans-fiche");
+        else if (err.message === "401") setEtat("aucun-compte");
+        else setEtat("erreur");
       });
-  }, [idUtilisateur]);
+  }, []);
 
   // « aujourd'hui » vient de la base, pas de l'horloge du navigateur : sinon le
   // fuseau du poste peut décaler la liste d'un jour. Comparer `jour` en chaînes

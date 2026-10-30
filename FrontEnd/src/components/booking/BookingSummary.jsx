@@ -40,7 +40,7 @@ export default function BookingSummary({ service, date, heure, pro, clientInfo, 
       {/* COORDONNÉES CLIENT POUR RAPPEL */}
       <div className="client-fields-card">
         <h4>Vos coordonnées pour la confirmation</h4>
-        <p className="fields-subtitle">Ces informations permettent à l'artisan de vous contacter si nécessaire.</p>
+        <p className="fields-subtitle">Ces informations sont reprises dans le message que vous adressez à InfinTime.</p>
         
         <div className="fields-grid">
           
@@ -71,7 +71,7 @@ export default function BookingSummary({ service, date, heure, pro, clientInfo, 
               id="client-tel"
               type="tel" 
               name="telephone" 
-              aria-label="Téléphone (rappel SMS)"
+              aria-label="Téléphone"
               value={clientInfo?.telephone || ''} 
               onChange={handleChange}
               required 

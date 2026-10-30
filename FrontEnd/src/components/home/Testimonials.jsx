@@ -4,21 +4,21 @@ export default function Testimonials() {
   const reviews = [
     {
       stars: "★★★★★",
-      text: "« J'ai pu réserver un artisan en 2 minutes un dimanche soir pour une intervention le lendemain. Tout s'est déroulé à la perfection ! »",
+      text: "« J'ai cherché un plombier près de chez moi, rempli la demande — prestation, créneau souhaité, coordonnées — puis je l'ai envoyée par email depuis ma messagerie. »",
       author: "Claire P.",
       role: "Particulier (Toulouse)",
       initials: "CP",
     },
     {
       stars: "★★★★★",
-      text: "« En tant qu'artisan, je n'ai plus besoin de gérer mon agenda le soir au téléphone. Mes clients réservent en direct, un gain de temps inestimable. »",
+      text: "« Côté atelier, je publie mes prestations et mes tarifs, et mon tableau de bord lit les rendez-vous et les devis enregistrés pour mon établissement. »",
       author: "M. Avaro",
       role: "Artisan Coiffeur Barbier",
       initials: "MA",
     },
     {
       stars: "★★★★★",
-      text: "« Les rappels par SMS et email ont réduit de 80% les rendez-vous oubliés. Une interface claire, fluide et indispensable. »",
+      text: "« L'interface est claire et fluide : on choisit la prestation, le créneau, puis la demande part par email en quelques minutes. »",
       author: "Jean-Luc J.",
       role: "Entrepreneur BTP (Blagnac)",
       initials: "JL",
@@ -29,9 +29,12 @@ export default function Testimonials() {
     <section className="testimonials-section">
       <div className="testimonials-section__container">
         <div className="testimonials-section__header">
-          <span className="section-tag">Témoignages</span>
-          <h1>Ils utilisent InfinTime au quotidien</h1>
-          <p>Découvrez les retours de nos clients particuliers et de nos entrepreneurs partenaires.</p>
+          <span className="section-tag">Témoignages — exemples de démonstration</span>
+          <h2>Ce que l'on veut vous simplifier</h2>
+          <p>
+            Trois retours fictifs, écrits pour illustrer l'usage : InfinTime n'a
+            pas encore de client ni d'artisan utilisateur réel.
+          </p>
         </div>
 
         <div className="testimonials-grid">

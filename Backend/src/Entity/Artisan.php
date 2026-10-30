@@ -54,29 +54,27 @@ final class Artisan
         );
     }
 
-    public function toArray(): array
+    /**
+     * Vue de liste, la route la plus exposee du site : exactement ce qu'une carte
+     * affiche. Ni siret, ni adresse, ni description, ni Id_utilisateur, ni
+     * date_creation -- `id_artisan` suffit au front pour rejoindre la fiche.
+     */
+    public function toCarte(): array
     {
         return [
             'id_artisan' => $this->idArtisan,
             'nom_etablissement' => $this->nomEtablissement,
             'metier' => $this->metier,
-            'siret' => $this->siret,
-            'description' => $this->description,
-            'adresse_etablissement' => $this->adresseEtablissement,
-            'code_postal' => $this->codePostal,
             'ville' => $this->ville,
-            'Id_utilisateur' => $this->idUtilisateur,
-            'date_creation' => $this->dateCreation?->format('Y-m-d H:i:s'),
+            'code_postal' => $this->codePostal,
             'tarif_min' => $this->tarifMin,
         ];
     }
 
     /**
-     * Vue complete pour la fiche publique. Volontairement distincte de
-     * toArray() : la liste publie encore siret, Id_utilisateur et date_creation
-     * (contrat gele ce jour pour ne pas regresser les cartes), la fiche ne les
-     * republie pas -- un Id_utilisateur dans le corps d'une page publique
-     * annulerait le choix d'une URL en id_artisan.
+     * Vue complete pour la fiche publique. Volontairement distincte de toCarte() :
+     * la description et l'adresse ne sont diffusees que sur la page qui les met
+     * en avant, jamais dans un listing adressable en masse.
      */
     public function toDetail(): array
     {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { formatTarif } from '../../utils/formatTarif';
+import { V2_API_URL } from '../../config/api';
 import './ArtisanProfile.scss';
 
 export default function ArtisanProfile() {
@@ -9,9 +10,7 @@ export default function ArtisanProfile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(
-      `http://projet-fil-rouge-v2.test/index.php?route=artisan&id=${encodeURIComponent(id)}`
-    )
+    fetch(`${V2_API_URL}?route=artisan&id=${encodeURIComponent(id)}`)
       .then((res) => {
         if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
         return res.json();

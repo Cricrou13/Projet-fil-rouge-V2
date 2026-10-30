@@ -37,9 +37,9 @@ class ArtisanRepository extends AbstractRepository
 
     /**
      * Fiche vue par l'artisan lui-même : la jointure se fait sur la clé du
-     * compte (Id_utilisateur), seule identité que le front connaît après une
-     * connexion. Les prestations masquées sont incluses, sinon l'artisan ne
-     * verrait plus celles qu'il a lui-même retirées de la vente.
+     * compte, et cette clé sort de la session serveur. Les prestations masquées
+     * sont incluses, sinon l'artisan ne verrait plus celles qu'il a lui-même
+     * retirées de la vente.
      */
     public function findByIdUtilisateur(int $idUtilisateur): ?Artisan
     {

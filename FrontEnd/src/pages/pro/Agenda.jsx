@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useOutletContext } from "react-router-dom";
 import { AlertCircle, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { getMetierConfig } from "../../data/metiers";
-import { useAuth } from "../../context/AuthContext";
 import { getAgendaPro } from "../../config/api";
 import { decaleJours, labelJour, plageHoraires, semaineDe } from "../../utils/dateSemaine";
 import { libelleStatut } from "../../data/statuts";
@@ -23,9 +22,6 @@ export default function Planning() {
   const { metier = "default" } = useOutletContext() || {};
   const config = getMetierConfig(metier);
 
-  const { proUser } = useAuth();
-  const idUtilisateur = proUser?.Id_utilisateur ?? null;
-
   // null = « semaine courante », laissée au calcul de la base. Un lundi demandé
   // est normalisé côté serveur : le front n'a jamais à connaître l'heure UTC.
   const [lundiDemande, setLundiDemande] = useState(null);
@@ -33,12 +29,7 @@ export default function Planning() {
   const [etat, setEtat] = useState("chargement");
 
   useEffect(() => {
-    if (idUtilisateur === null) {
-      setEtat("aucun-compte");
-      return;
-    }
-
-    getAgendaPro(idUtilisateur, lundiDemande)
+    getAgendaPro(lundiDemande)
       .then((data) => {
         setAgenda(data);
         setEtat("ok");
@@ -46,9 +37,11 @@ export default function Planning() {
       .catch((err) => {
         console.warn("⚠️ Semaine inaccessible :", err.message);
         setAgenda(null);
-        setEtat(err.message === "404" ? "sans-fiche" : "erreur");
+        if (err.message === "404") setEtat("sans-fiche");
+        else if (err.message === "401") setEtat("aucun-compte");
+        else setEtat("erreur");
       });
-  }, [idUtilisateur, lundiDemande]);
+  }, [lundiDemande]);
 
   const debut = agenda?.semaine?.debut ?? null;
   const jours = debut === null ? [] : semaineDe(debut);

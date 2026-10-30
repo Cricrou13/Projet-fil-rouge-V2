@@ -126,16 +126,16 @@
     }
   }
   .btn-confirm {
-    background: #10B981;
+    background: var(--color-primary, #4338CA);
     color: white;
     border: none;
     &:hover {
-      background: #059669;
+      background: var(--color-primary-hover, #3730A3);
     }
   }
 }
-/* ÉCRAN DE SUCCÈS */
-.booking-success-card {
+/* DEMANDE RÉDIGÉE — pas une confirmation de rendez-vous */
+.booking-envoi-card {
   background: white;
   border: 1px solid var(--color-border, #E5E5E5);
   border-radius: 16px;
@@ -145,12 +145,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  .success-badge-icon {
+  .envoi-badge-icon {
     width: 72px;
     height: 72px;
     border-radius: 50%;
-    background: #DCFCE7;
-    color: #10B981;
+    background: #FEF3C7;
+    color: #B45309;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -162,14 +162,14 @@
     color: var(--color-text, #171717);
     margin-bottom: 0.4rem;
   }
-  .success-subtitle {
+  .envoi-subtitle {
     font-size: 0.95rem;
     color: var(--color-text-secondary, #475569);
     max-width: 460px;
     line-height: 1.5;
     margin-bottom: 1.5rem;
   }
-  .confirmation-ticket {
+  .recap-ticket {
     width: 100%;
     max-width: 480px;
     background: #F8FAFC;
@@ -182,6 +182,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 0.75rem;
       padding-bottom: 0.75rem;
       border-bottom: 1px solid #E2E8F0;
       margin-bottom: 0.75rem;
@@ -194,7 +195,7 @@
       .ticket-status {
         font-size: 0.8rem;
         font-weight: 700;
-        color: #16A34A;
+        color: #B45309;
       }
     }
     .ticket-body {
@@ -223,12 +224,13 @@
       }
     }
   }
-  .success-actions {
+  .envoi-actions {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
     justify-content: center;
-    a {
+    a,
+    button {
       padding: 11px 20px;
       border-radius: 8px;
       font-size: 0.9rem;
@@ -236,7 +238,12 @@
       text-decoration: none;
       transition: all 0.2s ease;
     }
-    .btn-go-appointments {
+    button {
+      border: none;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .btn-send-mail {
       background: var(--color-primary, #4338CA);
       color: white;
       &:hover {

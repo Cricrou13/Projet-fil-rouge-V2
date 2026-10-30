@@ -13,16 +13,10 @@ import {
   Sparkles
 } from "lucide-react";
 import "./Prestationtable.scss";
-import { useAuth } from "../../context/AuthContext";
-import { V2_API_URL } from "../../config/api";
+import { getPro } from "../../config/api";
 import { formatDuree } from "../../utils/formatDuree";
 
 export default function Prestations() {
-
-  // L'espace pro s'identifie par Id_utilisateur : c'est la seule clé que la
-  // réponse de connexion.php met à disposition du front.
-  const { proUser } = useAuth();
-  const idUtilisateur = proUser?.Id_utilisateur ?? null;
 
   // `categorie` n'existe dans aucune table : la colonne reste affichee mais
   // vide, et les onglets se rempliraient d'eux-memes le jour ou la colonne arrive.
@@ -53,19 +47,10 @@ export default function Prestations() {
     description: "",
   });
 
+  // Aucune identite ne sort du front ici : la session du serveur designe la
+  // fiche, le cookie part seul avec la requete.
   useEffect(() => {
-    if (idUtilisateur === null) {
-      setEtat("aucun-compte");
-      return;
-    }
-    fetch(`${V2_API_URL}?route=pro&id_utilisateur=${encodeURIComponent(idUtilisateur)}`)
-      .then((res) => {
-        // 404 = le compte existe mais n'a pas de ligne dans `artisans`
-        // (connexion.php ne filtre pas le role).
-        if (res.status === 404) throw new Error("404");
-        if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
-        return res.json();
-      })
+    getPro()
       .then((data) => {
         setPrestations((data.prestations ?? []).map(toLigne));
         setEtat("ok");
@@ -73,9 +58,13 @@ export default function Prestations() {
       .catch((err) => {
         console.warn("⚠️ Catalogue pro inaccessible :", err.message);
         setPrestations([]);
-        setEtat(err.message === "404" ? "sans-fiche" : "erreur");
+        // 404 = le compte connecte n'a pas de ligne dans `artisans`.
+        // 401 = la session a expiree entre-temps, le bandeau le dit mieux qu'une erreur.
+        if (err.message === "404") setEtat("sans-fiche");
+        else if (err.message === "401") setEtat("aucun-compte");
+        else setEtat("erreur");
       });
-  }, [idUtilisateur]);
+  }, []);
 
   // Les catégories dépendent des données : aucune colonne en base aujourd'hui.
   const categories = ["all", ...new Set(prestations.map((p) => p.categorie).filter(Boolean))];

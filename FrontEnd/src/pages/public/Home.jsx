@@ -10,13 +10,14 @@ import ProCtaBanner from "../../components/home/ProCtaBanner";
 import Testimonials from "../../components/home/Testimonials";
 import { mockPros } from "../../data/mockPros";
 import { formatTarif } from "../../utils/formatTarif";
+import { V2_API_URL } from "../../config/api";
 import "./Home.scss";
 
 export default function Home() {
   const [topPros, setTopPros] = useState([]);
   const [loading, setLoading] = useState(true);
   useEffect(() => {
-    fetch("http://projet-fil-rouge-v2.test/index.php?route=artisans")
+    fetch(`${V2_API_URL}?route=artisans`)
       .then((res) => {
         if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
         return res.json();
@@ -59,9 +60,9 @@ export default function Home() {
         <div className="home-pros-section__container">
           <div className="home-pros-section__header">
             <div>
-              <span className="section-tag">Disponibilités vérifiées</span>
+              <span className="section-tag">Artisans enregistrés sur InfinTime</span>
               <h2>Nos entrepreneurs à la une</h2>
-              <p>Prenez rendez-vous en direct avec des artisans certifiés de votre région</p>
+              <p>Consultez leur métier, leur ville et leur tarif indicatif, puis préparez votre demande : elle part par email.</p>
             </div>
             <Link to="/recherche" className="link-all">
               <span>Voir tous les professionnels</span>

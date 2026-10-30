@@ -3,10 +3,9 @@ import { useState, useMemo, useEffect } from "react";
 import { 
   ArrowLeft, 
   ArrowRight, 
-  CheckCircle2, 
+  MailOpen, 
   ShieldCheck, 
-  MapPin,
-  Clock
+  MapPin
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import BookingStepper from "../../components/booking/BookingStepper";
@@ -14,8 +13,12 @@ import ServiceSelector from "../../components/booking/ServiceSelector";
 import DateTimePicker from "../../components/booking/DateTimePicker";
 import BookingSummary from "../../components/booking/BookingSummary";
 import { getMetierConfig } from "../../data/metiers";
+import { V2_API_URL } from "../../config/api";
 import { formatDuree } from "../../utils/formatDuree";
 import "./Booking.scss";
+
+// Adresse publiée dans les mentions légales (LegalNotice.jsx:52).
+const EMAIL_CONTACT = "contact@inftime.fr";
 
 export default function Booking() {
   const { isClientConnected, clientUser } = useAuth();
@@ -33,9 +36,7 @@ export default function Booking() {
       setLoading(false);
       return;
     }
-    fetch(
-      `http://projet-fil-rouge-v2.test/index.php?route=artisan&id=${encodeURIComponent(proId)}`
-    )
+    fetch(`${V2_API_URL}?route=artisan&id=${encodeURIComponent(proId)}`)
       .then((res) => {
         if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
         return res.json();
@@ -93,15 +94,17 @@ export default function Booking() {
     }
   }, [clientUser]);
 
-  const [isConfirmed, setIsConfirmed] = useState(false);
+  // « prête » et non « confirmée » : aucune route d'écriture n'enregistre un
+  // rendez-vous, donc cette étape rédige la demande, elle ne la réserve pas.
+  const [demandePrete, setDemandePrete] = useState(false);
 
   // Validation par étape
   const canGoNext =
     (step === 1 && service) ||
     (step === 2 && date && heure);
 
-  const handleConfirm = () => {
-    setIsConfirmed(true);
+  const handlePrepare = () => {
+    setDemandePrete(true);
   };
 
   // Redirection vers la connexion si le client n'est pas identifié
@@ -138,6 +141,29 @@ export default function Booking() {
 
   const metierConfig = getMetierConfig(artisan.metier);
 
+  // Le corps est construit ligne par ligne : un champ client vide (téléphone
+  // facultatif dans `utilisateurs`) ne doit pas laisser de ligne orpheline.
+  const lignesDemande = [
+    "Nouvelle demande de rendez-vous",
+    "",
+    `Professionnel : ${artisan.nom_etablissement} (${artisan.ville})`,
+    `Prestation : ${service?.nom ?? "à préciser"}`,
+    date && heure ? `Créneau souhaité : ${date} à ${heure}` : null,
+    service?.prix != null ? `Tarif indicatif : ${service.prix} € TTC` : null,
+    "",
+    `Client : ${clientInfo.nom || "nom non renseigné"} (${clientInfo.email})`,
+    clientInfo.telephone ? `Téléphone : ${clientInfo.telephone}` : null,
+    "",
+    "Rédigé depuis le tunnel de réservation InfinTime. Ce message n'a pas encore été envoyé.",
+  ].filter((ligne) => ligne !== null);
+
+  const hrefEnvoi =
+    `mailto:${EMAIL_CONTACT}` +
+    `?subject=${encodeURIComponent(
+      `Demande de rendez-vous — ${artisan.nom_etablissement}`,
+    )}` +
+    `&body=${encodeURIComponent(lignesDemande.join("\n"))}`;
+
   return (
     <div className="booking-page">
       <div className="booking-container">
@@ -169,20 +195,24 @@ export default function Booking() {
           </div>
         </div>
 
-        {/* ÉCRAN DE SUCCÈS APRÈS CONFIRMATION */}
-        {isConfirmed ? (
-          <div className="booking-success-card">
-            <div className="success-badge-icon">
-              <CheckCircle2 size={54} />
+        {/* DEMANDE RÉDIGÉE — jamais « rendez-vous réservé » */}
+        {demandePrete ? (
+          <div className="booking-envoi-card">
+            <div className="envoi-badge-icon">
+              <MailOpen size={54} />
             </div>
-            <h1>Rendez-vous confirmé !</h1>
-            <p className="success-subtitle">
-              Votre réservation a bien été enregistrée et transmise à <strong>{artisan.nom_etablissement}</strong>.
+            <h1>Votre demande est prête : il reste à l'envoyer.</h1>
+            <p className="envoi-subtitle">
+              Merci {clientInfo.nom || "à vous"}. Rien n'a été réservé ni
+              transmis à <strong>{artisan.nom_etablissement}</strong> : InfinTime
+              n'a pas de serveur qui enregistre les rendez-vous. Le bouton
+              ci-dessous ouvre votre messagerie avec la demande déjà rédigée pour{" "}
+              <strong>{EMAIL_CONTACT}</strong>.
             </p>
-            <div className="confirmation-ticket">
+            <div className="recap-ticket">
               <div className="ticket-header">
-                <span className="ticket-id">RÉSERVATION #RDV-{Math.floor(1000 + Math.random() * 9000)}</span>
-                <span className="ticket-status">✓ Confirmé</span>
+                <span className="ticket-id">BROUILLON — AUCUN NUMÉRO ATTRIBUÉ</span>
+                <span className="ticket-status">À envoyer</span>
               </div>
               <div className="ticket-body">
                 <div className="ticket-row">
@@ -203,10 +233,17 @@ export default function Booking() {
                 </div>
               </div>
             </div>
-            <div className="success-actions">
-              <Link to="/mes-rendez-vous" className="btn-go-appointments">
-                Voir dans Mes rendez-vous
-              </Link>
+            <div className="envoi-actions">
+              <a className="btn-send-mail" href={hrefEnvoi}>
+                Ouvrir ma messagerie
+              </a>
+              <button
+                type="button"
+                className="btn-back-home"
+                onClick={() => setDemandePrete(false)}
+              >
+                Modifier ma demande
+              </button>
               <Link to="/" className="btn-back-home">
                 Retour à l'accueil
               </Link>
@@ -293,25 +330,26 @@ export default function Booking() {
                 <button 
                   type="button"
                   className="btn-confirm" 
-                  onClick={handleConfirm}
+                  onClick={handlePrepare}
                 >
-                  <CheckCircle2 size={18} />
-                  <span>Confirmer mon rendez-vous</span>
+                  <MailOpen size={18} />
+                  <span>Préparer ma demande de rendez-vous</span>
                 </button>
               )}
             </div>
           </div>
         )}
 
-        {/* RÉASSURANCE */}
+        {/* DEUX FAITS VÉRIFIABLES, pas des promesses de service :
+            aucune écriture en base, et le `mailto:` part vers la plateforme. */}
         <div className="booking-trust">
           <div className="trust-item">
             <ShieldCheck size={16} />
-            <span>Annulation gratuite jusqu'à 2h avant</span>
+            <span>Aucune réservation n'est enregistrée sur InfinTime</span>
           </div>
           <div className="trust-item">
-            <Clock size={16} />
-            <span>Rappel automatique par SMS & Email</span>
+            <MailOpen size={16} />
+            <span>Votre demande part vers {EMAIL_CONTACT}, pas vers l'artisan</span>
           </div>
         </div>
       </div>

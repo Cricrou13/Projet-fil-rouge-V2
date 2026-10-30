@@ -6,7 +6,7 @@ import { METIERS_SELECT } from '../../data/metiers';
 import './Auth.scss';
 
 export default function Auth() {
-  const { loginClient, loginPro } = useAuth();
+  const { login } = useAuth();
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
@@ -53,38 +53,16 @@ export default function Auth() {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/connexion.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(loginData),
-      });
+      const connecte = await login(loginData.email, loginData.password);
+      setMessage('Connexion réussie ! Redirection en cours...');
 
-      const textData = await response.text();
-      let data;
+      // Le role vient de la reponse du serveur, plus du formulaire : c'est la
+      // session qui dit qui est en face, pas ce que le navigateur a clique.
+      const destination = connecte.role === 'artisan' ? '/pro/tableau-de-bord' : '/';
 
-      try {
-        data = JSON.parse(textData);
-      } catch (parseError) {
-        setError("La réponse du serveur est invalide.");
-        return;
-      }
-
-      if (data.success) {
-        setMessage('Connexion réussie ! Redirection en cours...');
-
-        if (data.user.role === 'artisan') {
-          loginPro(data.user);
-          setTimeout(() => navigate('/pro/tableau-de-bord'), 1000);
-        } else {
-          loginClient(data.user);
-          setTimeout(() => navigate('/'), 1000);
-        }
-      } else {
-        setError(data.message || "Identifiants incorrects.");
-      }
-
+      setTimeout(() => navigate(destination), 1000);
     } catch (err) {
-      setError('Erreur de communication avec l’API.');
+      setError(err.message || 'Erreur de communication avec l’API.');
     }
   };
 

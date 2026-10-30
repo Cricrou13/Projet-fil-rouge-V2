@@ -118,11 +118,6 @@ export default function PrivacyPolicy() {
                     <td>Exécution du contrat / service</td>
                   </tr>
                   <tr>
-                    <td><strong>Rappels de rendez-vous (SMS / Email)</strong></td>
-                    <td>Email, numéro de mobile</td>
-                    <td>Intérêt légitime (réduction des oublis)</td>
-                  </tr>
-                  <tr>
                     <td><strong>Demande de devis travaux</strong></td>
                     <td>Coordonnées, description du projet</td>
                     <td>Exécution de mesures précontractuelles</td>

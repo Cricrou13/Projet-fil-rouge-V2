@@ -4,6 +4,7 @@ import { Search, MapPin, SlidersHorizontal, RotateCcw, Frown } from "lucide-reac
 import ProCard from "../../components/home/ProCard";
 import { mockPros } from "../../data/mockPros";
 import { formatTarif } from "../../utils/formatTarif";
+import { V2_API_URL } from "../../config/api";
 import "./SearchPro.scss";
 
 // Fonction utilitaire pour ignorer la casse et les accents
@@ -24,7 +25,7 @@ export default function SearchPro() {
   const [loading, setLoading] = useState(true);
   // 2. Appel API vers la base de données MySQL
   useEffect(() => {
-    fetch("http://projet-fil-rouge-v2.test/index.php?route=artisans")
+    fetch(`${V2_API_URL}?route=artisans`)
       .then((res) => {
         if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
         return res.json();

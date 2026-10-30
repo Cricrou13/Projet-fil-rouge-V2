@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../config/api';
 
 function Login() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   
   const navigate = useNavigate();
-  const { loginPro, loginClient } = useAuth();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,34 +15,18 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("1. Formulaire soumis avec :", formData); // <-- VÉRIFICATION DE CLIC
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/connexion.php`, {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify(formData),
-});
+      const connecte = await login(formData.email, formData.password);
 
-const data = await response.json();
-
-if (response.ok && data.success) {
-  if (data.user.role === 'artisan' || data.user.role === 'pro') {
-    loginPro(data.user);
-    navigate('/pro/tableau-de-bord');
-  } else {
-    loginClient(data.user);
-    navigate('/mes-rendez-vous');
-  }
-} else {
-  // Affiche le message de mon API PHP (ex: "Mot de passe incorrect")
-  setError(data.message || 'Identifiants incorrects.');
-
+      if (connecte.role === 'artisan') {
+        navigate('/pro/tableau-de-bord');
+      } else {
+        navigate('/mes-rendez-vous');
       }
     } catch (err) {
-      console.error("Erreur Fetch :", err);
-      setError('Erreur de connexion au serveur.');
+      setError(err.message || 'Identifiants incorrects.');
     }
   };
 

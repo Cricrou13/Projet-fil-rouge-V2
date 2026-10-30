@@ -18,7 +18,7 @@ class ArtisanController extends AbstractController
     {
         try {
             $payload = array_map(
-                static fn (Artisan $artisan): array => $artisan->toArray(),
+                static fn (Artisan $artisan): array => $artisan->toCarte(),
                 $this->artisanRepository->findAll()
             );
             $status = 200;
@@ -37,12 +37,11 @@ class ArtisanController extends AbstractController
         $this->sendDetail(fn (): ?Artisan => $this->artisanRepository->find($idArtisan), __METHOD__);
     }
 
-    /** Espace pro, adressé par Id_utilisateur : c'est la seule identité que la
-     *  réponse de connexion.php met à disposition du front. */
-    public function espacePro(int $idUtilisateur): void
+    /** Espace pro : l'identifiant vient de la session, jamais de la requete. */
+    public function espacePro(): void
     {
         $this->sendDetail(
-            fn (): ?Artisan => $this->artisanRepository->findByIdUtilisateur($idUtilisateur),
+            fn (): ?Artisan => $this->artisanRepository->findByIdUtilisateur($this->compteConnecte()),
             __METHOD__
         );
     }

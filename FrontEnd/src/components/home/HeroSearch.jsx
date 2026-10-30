@@ -25,16 +25,16 @@ export default function HeroSearch() {
       <div className="hero-search__container">
         <div className="hero-search__badge">
           <span className="badge-pulse"></span>
-          Prise de rendez-vous en ligne 24/7
+          Demande de rendez-vous par email
         </div>
 
         <h1 className="hero-search__title">
-          Trouvez et réservez votre entrepreneur{" "}
-          <span className="hero-search__highlight">en quelques clics</span>
+          Trouvez votre entrepreneur{" "}
+          <span className="hero-search__highlight">et envoyez-lui votre demande</span>
         </h1>
 
         <p className="hero-search__subtitle">
-          Consultez les disponibilités réelles, réservez instantanément ou demandez un devis sans engagement.
+          Filtrez par métier et par ville, consultez les prestations publiées, puis préparez votre demande. Elle part par email : rien n'est enregistré sur InfinTime.
         </p>
 
         <form className="hero-search__form" onSubmit={handleSubmit}>

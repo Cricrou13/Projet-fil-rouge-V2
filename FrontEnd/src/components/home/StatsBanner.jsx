@@ -2,9 +2,9 @@ import "./StatsBanner.scss";
 
 export default function StatsBanner() {
   const stats = [
-    { value: "+1 200", label: "Entrepreneurs inscrits" },
-    { value: "24h / 7j", label: "Réservation en ligne instantanée" },
-    { value: "4.9 / 5", label: "Note moyenne certifiée" },
+    { value: "Par métier", label: "Recherche dans les fiches publiées" },
+    { value: "Par email", label: "Votre demande transmise" },
+    { value: "Aucun avis", label: "Aucune note publiée pour l'instant" },
     { value: "100%", label: "Gratuit pour les clients" },
   ];
 

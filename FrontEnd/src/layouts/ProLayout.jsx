@@ -6,8 +6,14 @@ import { useAuth } from "../context/AuthContext";
 import "./ProLayout.scss";
 
 export default function ProLayout() {
-  const { proUser, logoutPro } = useAuth(); 
+  const { proUser, logoutPro, authCharge } = useAuth(); 
   const navigate = useNavigate();
+
+  // La session se probe en une requête asynchrone : rediriger avant la réponse
+  // éjecterait de son espace un artisan qui rafraîchit simplement la page.
+  if (!authCharge) {
+    return null;
+  }
 
   // 🔒 PROTECTION : Redirection vers la connexion pro dédiée
   if (!proUser) {

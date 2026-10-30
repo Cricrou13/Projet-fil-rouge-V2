@@ -4,10 +4,10 @@ import "./ProCtaBanner.scss";
 
 export default function ProCtaBanner() {
   const benefits = [
-    "Agenda synchronisé sans double réservation",
-    "Moins de rendez-vous manqués grâce aux rappels",
-    "Fiches clients et suivi des devis centralisés",
-    "Visibilité locale renforcée sur votre région",
+    "Un planning hebdomadaire alimenté par vos rendez-vous enregistrés",
+    "Vos prestations et vos tarifs publiés, visibles par les clients",
+    "Les devis enregistrés pour votre établissement, regroupés dans un tableau de bord",
+    "Une fiche d'établissement reprise dans la recherche par métier et par ville",
   ];
 
   return (
@@ -20,7 +20,7 @@ export default function ProCtaBanner() {
             <span>Gagnez du temps et développez votre clientèle</span>
           </h2>
           <p>
-            InfinTime vous libère des contraintes administratives. Vos clients réservent leurs créneaux en ligne, vous vous concentrez sur votre savoir-faire.
+            Vos clients préparent leur demande — prestation, créneau souhaité, coordonnées — et vous l'envoient par email. L'espace pro, lui, lit les rendez-vous et les devis enregistrés pour votre établissement.
           </p>
 
           <ul className="pro-cta-banner__list">

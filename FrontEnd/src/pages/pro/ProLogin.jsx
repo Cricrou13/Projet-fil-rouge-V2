@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../config/api';
 import './ProLogin.scss';
 
 export default function ProLogin() {
@@ -9,7 +8,7 @@ export default function ProLogin() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   
-  const { loginPro } = useAuth();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,29 +19,15 @@ export default function ProLogin() {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/connexion.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
+      await login(formData.email, formData.password);
 
-      const data = await response.json();
-      console.log("Réponse API connexion PHP", data);
-
-      if (data.success) {
-        if (loginPro) {
-          loginPro(data.user);
-        } else {
-          localStorage.setItem('proUser', JSON.stringify(data.user));
-        }
-        
-        navigate('/pro/tableau-de-bord');
-      } else {
-        setError(data.message || 'Identifiants professionnels invalides.');
-      }
+      // Pas de test de role ici : ProLayout garde la page tant que la session
+      // ne designe pas une fiche artisan, sur la meme reponse serveur que les
+      // autres pages.
+      navigate('/pro/tableau-de-bord');
     } catch (err) {
-      console.error(err);
-      setError('Erreur de communication avec le serveur.');
+      // Le serveur ne dit qu'une chose a la fois : 'Identifiants incorrects'.
+      setError(err.message || 'Connexion impossible.');
     }
   };
 

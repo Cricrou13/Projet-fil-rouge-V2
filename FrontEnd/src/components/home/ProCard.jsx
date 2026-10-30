@@ -92,7 +92,7 @@ const initials = pro.initials || (proName ? proName.split(" ").map((n) => n[0]).
         {pro.startingPrice !== null && pro.startingPrice !== "Sur devis" ? (
           <Link to={`/reservation?pro=${proId}`} className="btn-book">
             <Calendar size={14} />
-            <span>Prendre RDV</span>
+            <span>Demander un RDV</span>
           </Link>
         ) : (
           <Link to="/devis" className="btn-book">

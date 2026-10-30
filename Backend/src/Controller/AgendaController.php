@@ -21,13 +21,14 @@ class AgendaController extends AbstractController
     }
 
     /**
-     * Planning d'une semaine, adressé par Id_utilisateur : c'est la seule identité
-     * que la réponse de connexion.php laisse au front. `lundi` null = semaine
-     * courante, calculée par la base.
+     * Planning d'une semaine de l'artisan connecte. L'identifiant vient de la
+     * session, jamais de la requete : `lundi` null = semaine courante, calculée
+     * par la base.
      */
-    public function semaine(int $idUtilisateur, ?string $lundi): void
+    public function semaine(?string $lundi): void
     {
         try {
+            $idUtilisateur = $this->compteConnecte();
             $idArtisan = $this->artisanRepository->idArtisanParIdUtilisateur($idUtilisateur);
 
             if ($idArtisan === null) {
