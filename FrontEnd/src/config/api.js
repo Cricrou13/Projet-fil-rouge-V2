@@ -1,12 +1,12 @@
-// Inscription : la seule ecriture encore branchee sur l'ancienne API, parce que
-// le routeur V2 ne sait toujours pas ecrire (aucun INSERT dans src/). La
-// connexion, elle, est passee cote V2 : les deux touchent la meme base.
-export const API_BASE_URL = 'http://localhost/infintime.api';
-
 // Base du backend MVC V2, en chemin relatif donc same-origin. C'est une condition
 // fonctionnelle, pas un style : le cookie de session PHP n'est accepte par le
 // navigateur que si la requete part vers la meme origine que la page. Le proxy
 // Vite (dev) et Apache (prod) se chargent de ce rapprochement.
+//
+// L'URL de l'ancienne API (`http://localhost/infintime.api`) a disparu d'ici :
+// l'inscription etait sa derniere utilisatrice, et ce chemin n'est pas une URL
+// voisine, c'est un symlink Apache vers le dépôt d'origine. Le front V2 ne depend
+// donc plus de ce dépôt.
 export const V2_API_URL = '/index.php';
 
 async function requeteV2(route, { method = 'GET', corps = null, params = {} } = {}) {
@@ -33,6 +33,31 @@ export async function connexionV2(email, motDePasse) {
     const reponse = await requeteV2('connexion', {
         method: 'POST',
         corps: { email, mot_de_passe: motDePasse },
+    });
+    const corps = await reponse.json().catch(() => ({}));
+
+    if (!reponse.ok) {
+        throw new Error(corps.error || `Erreur HTTP : ${reponse.status}`);
+    }
+
+    return corps.utilisateur;
+}
+
+/**
+ * Creation d'un compte. Le formulaire appelle sa cle `password` ; le serveur, lui,
+ * ne connait que `mot_de_passe`, le meme nom que la route de connexion. La
+ * traduction se fait ici pour que le mot de passe ne parte pas deux fois dans le
+ * meme corps de requete sous deux cles differentes.
+ *
+ * @returns {Promise<object>} le compte cree, meme forme que connexionV2
+ * @throws {Error} message du serveur ('Cet email est déjà utilisé.', ...)
+ */
+export async function inscriptionV2(formulaire) {
+    const { password, ...champs } = formulaire;
+
+    const reponse = await requeteV2('inscription', {
+        method: 'POST',
+        corps: { ...champs, mot_de_passe: password },
     });
     const corps = await reponse.json().catch(() => ({}));
 

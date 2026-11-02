@@ -7,10 +7,13 @@ use App\Config\Session;
 use App\Controller\AgendaController;
 use App\Controller\ArtisanController;
 use App\Controller\AuthController;
+use App\Controller\InscriptionController;
 use App\Repository\ArtisanRepository;
+use App\Repository\ClientRepository;
 use App\Repository\DevisRepository;
 use App\Repository\RendezVousRepository;
 use App\Repository\UtilisateurRepository;
+use App\Service\InscriptionService;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -18,7 +21,9 @@ require __DIR__ . '/../vendor/autoload.php';
  * Tout le cablage du serveur, en une table. `verbe` = seule methode acceptee ;
  * `session` = la route lit ou ecrit une session, donc PHP la demarre si le
  * navigateur apporte un cookie. `connexion` est a false parce que ce n'est
- * qu'en cas de succes que Session::attacher() en ouvre une.
+ * qu'en cas de succes que Session::attacher() en ouvre une. `inscription` est a
+ * false pour la meme raison : creer un compte ne connecte personne, le visiteur
+ * passe ensuite par `connexion` comme n'importe qui d'autre.
  *
  * Les en-tetes Access-Control-* de l'ancienne version sont partis avec elle :
  * un `Allow-Origin: *` est par construction incompatible avec un cookie de
@@ -32,6 +37,7 @@ const ROUTES = [
     'pro' => ['verbe' => 'GET', 'session' => true],
     'pro-agenda' => ['verbe' => 'GET', 'session' => true],
     'moi' => ['verbe' => 'GET', 'session' => true],
+    'inscription' => ['verbe' => 'POST', 'session' => false],
     'connexion' => ['verbe' => 'POST', 'session' => false],
     'deconnexion' => ['verbe' => 'POST', 'session' => true],
 ];
@@ -105,6 +111,19 @@ try {
                 new RendezVousRepository($pdo),
                 new DevisRepository($pdo)
             ))->semaine($lundi);
+            break;
+
+        case 'inscription':
+            // Le service recoit la connexion et ses trois repositories : c'est
+            // l'injection de dependances telle que le cours la demande, et elle a
+            // servi pour de vrai -- le harnais de preuve construit les memes
+            // objets sans passer par ce routeur.
+            (new InscriptionController(new InscriptionService(
+                $pdo,
+                new UtilisateurRepository($pdo),
+                new ArtisanRepository($pdo),
+                new ClientRepository($pdo)
+            )))->creer();
             break;
 
         case 'connexion':

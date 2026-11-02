@@ -64,6 +64,41 @@ class ArtisanRepository extends AbstractRepository
         return $id === false ? null : (int) $id;
     }
 
+    /**
+     * Fiche professionnelle creee a l'inscription. Les sept champs texte sont
+     * NOT NULL sans defaut : l'appelant envoie des chaines vides, jamais NULL.
+     * `date_creation` est laisse a MySQL (DEFAULT CURRENT_TIMESTAMP), ce qui est
+     * justement le probleme que `utilisateurs.date_creation` n'a pas.
+     */
+    public function creerFiche(
+        int $idUtilisateur,
+        string $nomEtablissement,
+        string $metier,
+        string $siret,
+        string $description,
+        string $adresseEtablissement,
+        string $codePostal,
+        string $ville,
+    ): int {
+        $stmt = $this->db->prepare(
+            'INSERT INTO artisans (nom_etablissement, metier, siret, description,'
+            . ' adresse_etablissement, code_postal, ville, Id_utilisateur)'
+            . ' VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([
+            $nomEtablissement,
+            $metier,
+            $siret,
+            $description,
+            $adresseEtablissement,
+            $codePostal,
+            $ville,
+            $idUtilisateur,
+        ]);
+
+        return (int) $this->db->lastInsertId();
+    }
+
     /** @param string $sql fragment construit en interne, jamais depuis l'entrée HTTP */
     private function hydrated(string $sql, int $id, bool $avecPrestationsMasquees): ?Artisan
     {

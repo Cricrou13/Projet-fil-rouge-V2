@@ -16,7 +16,6 @@ import Login from "./pages/public/Login";
 import MyAppointments from "./pages/public/MyAppointments";
 import PageIntrouvable from "./pages/public/PageIntrouvable";
 import PageContact from "./pages/public/PageContact";
-import Register from "./pages/public/Register";
 import ArtisanProfile from './components/pro/ArtisanProfile';
 import PrivacyPolicy from "./pages/public/PrivacyPolicy";
 import LegalNotice from "./pages/public/LegalNotice";

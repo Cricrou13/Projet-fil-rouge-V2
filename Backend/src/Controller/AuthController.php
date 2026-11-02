@@ -96,19 +96,6 @@ class AuthController extends AbstractController
         $this->jsonResponse(['deconnecte' => true]);
     }
 
-    /** @return array<string, mixed> */
-    private function corpsJson(): array
-    {
-        $brut = file_get_contents('php://input');
-        $corps = json_decode((string) $brut, true);
-
-        if (!is_array($corps)) {
-            $this->jsonResponse(['error' => 'Corps de requete JSON invalide'], 400);
-        }
-
-        return $corps;
-    }
-
     /**
      * Reponse d'echec unique, identique que l'adresse soit inconnue ou le mot de
      * passe faux. Le corps ne doit rien dire de plus : c'est la seule chose qui

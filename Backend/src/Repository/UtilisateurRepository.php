@@ -43,4 +43,51 @@ class UtilisateurRepository extends AbstractRepository
 
         return $row === false ? null : Utilisateur::fromRow($row);
     }
+
+    /**
+     * Le controle d'unicite, parce que la colonne n'a pas d'index UNIQUE (mesure :
+     * SHOW INDEX ne renvoie que PRIMARY). Deux consequences, et les deux comptent :
+     *
+     * 1. `FOR UPDATE` ne sert a rien hors transaction, donc cet appel ne peut etre
+     *    fait que depuis InscriptionService, qui possede la transaction.
+     * 2. Sans index sur `email`, MySQL balaye la table et pose un verrou sur chaque
+     *    ligne lue : deux inscriptions simultanees sur la meme adresse ne peuvent
+     *    plus toutes les deux franchir le controle. A quatre lignes le cout est nul.
+     *
+     * La comparaison est insensible a la casse (collation utf8mb4_0900_ai_ci), donc
+     * `Marc@x.com` et `marc@x.com` se heurtent ici sans qu'on normalise la saisie.
+     */
+    public function emailExiste(string $email): bool
+    {
+        $stmt = $this->db->prepare('SELECT 1 FROM utilisateurs WHERE email = ? FOR UPDATE');
+        $stmt->execute([$email]);
+
+        return $stmt->fetchColumn() !== false;
+    }
+
+    /**
+     * Le hash est recu deja calcule : la politique de mot de passe regarde le
+     * service, pas la couche qui parle a MySQL.
+     *
+     * `NOW()` et non `date('Y-m-d H:i:s')` : la colonne est NOT NULL sans defaut,
+     * et PHP tourne en UTC pendant que MySQL est a l'heure de Paris (1 h d'ecart
+     * mesuree en hiver, 2 h en ete). Laisser la base horodater met date_creation
+     * dans le meme referentiel qu'`artisans.date_creation`, deja CURRENT_TIMESTAMP.
+     */
+    public function enregistrer(
+        string $nom,
+        string $prenom,
+        string $email,
+        string $motDePasseHash,
+        ?string $telephone,
+        string $role,
+    ): int {
+        $stmt = $this->db->prepare(
+            'INSERT INTO utilisateurs (nom, prenom, email, mot_de_passe, telephone, date_creation, role)'
+            . ' VALUES (?, ?, ?, ?, ?, NOW(), ?)'
+        );
+        $stmt->execute([$nom, $prenom, $email, $motDePasseHash, $telephone, $role]);
+
+        return (int) $this->db->lastInsertId();
+    }
 }

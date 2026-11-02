@@ -26,6 +26,26 @@ abstract class AbstractController
     }
 
     /**
+     * Corps JSON de la requete, decodé en tableau associtatif. La lecture est
+     * commune aux deux routes qui ecrivent (connexion, inscription) : le decodage
+     * n'est pas une decision metier, et deux implementations divergentes finiraient
+     * par accepter deux choses differentes la meme journee.
+     *
+     * @return array<string, mixed>
+     */
+    protected function corpsJson(): array
+    {
+        $brut = file_get_contents('php://input');
+        $corps = json_decode((string) $brut, true);
+
+        if (!is_array($corps)) {
+            $this->jsonResponse(['error' => 'Corps de requete JSON invalide'], 400);
+        }
+
+        return $corps;
+    }
+
+    /**
      * Envoie des données au format JSON avec les bons en-têtes HTTP
      */
     protected function jsonResponse(mixed $data, int $statusCode = 200): void

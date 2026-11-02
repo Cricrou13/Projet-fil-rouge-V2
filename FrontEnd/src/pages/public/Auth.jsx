@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { API_BASE_URL } from '../../config/api';
+import { inscriptionV2 } from '../../config/api';
 import { METIERS_SELECT } from '../../data/metiers';
 import './Auth.scss';
 
@@ -73,25 +73,18 @@ export default function Auth() {
     setError('');
 
     try {
-      const response = await fetch(`${API_BASE_URL}/register.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(registerData),
-      });
+      await inscriptionV2({ ...registerData });
+      setMessage('Inscription réussie ! Vous pouvez vous connecter.');
 
-      const data = await response.json();
-
-      if (data.success) {
-        setMessage('Inscription réussie ! Vous pouvez vous connecter.');
-        setTimeout(() => {
-          navigate('/connexion');
-          setMessage('');
-        }, 1500);
-      } else {
-        setError(data.message || "Erreur lors de l'inscription.");
-      }
+      // Pas de login automatique ici : le serveur ne cree pas de session (la route
+      // est declaree `session => false`), donc le compte est ouvert par
+      // `connexion` comme n'importe lequel, avec le meme role serveur a la cle.
+      setTimeout(() => {
+        navigate('/connexion');
+        setMessage('');
+      }, 1500);
     } catch (err) {
-      setError('Erreur de communication avec l’API.');
+      setError(err.message || "Erreur lors de l'inscription.");
     }
   };
 
