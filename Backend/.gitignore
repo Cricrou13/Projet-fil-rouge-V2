@@ -1,6 +1,18 @@
 # Dépendances PHP
 /vendor/
 
+# Artefacts du build Vite. Le docroot ne sert que l'API : `npm run build` écrit
+# dans FrontEnd/dist (ignoré de son côté), et un bundle recopié ici redeviendrait
+# cet écran qui a menti pendant une semaine -- `index.html` appelle des noms
+# hashés, donc chaque build produit un `git diff` de fichiers créés et supprimés.
+# Le `.htaccess` et `index.php` restent suivis : ce sont les deux fichiers que le
+# serveur lit vraiment.
+/public/index.html
+/public/assets/
+/public/favicon.svg
+/public/icons.svg
+/public/robots.txt
+
 # Fichiers de configuration sensibles (mots de passe BDD)
 .env
 
