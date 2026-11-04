@@ -8,11 +8,9 @@ final class Devis
 {
     public function __construct(
         private int $idDevis,
-        // DATE simple ('2026-10-28'), sans heure : date_demande ne stocke pas d'heure.
+        // DATE simple ('2026-10-28'), sans heure 
         private string $dateDemande,
         private string $descriptionDemande,
-        // decimal(15,2) : string, jamais float, pour ne pas introduire d'erreur
-        // binaire sur un montant.
         private string $montantPropose,
         private string $statut,
         private string $nomClient,

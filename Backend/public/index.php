@@ -7,6 +7,7 @@ use App\Config\Session;
 use App\Controller\AgendaController;
 use App\Controller\ArtisanController;
 use App\Controller\AuthController;
+use App\Controller\ClientController;
 use App\Controller\InscriptionController;
 use App\Controller\PrestationController;
 use App\Controller\RendezVousController;
@@ -41,6 +42,7 @@ const ROUTES = [
     'artisan' => ['verbe' => 'GET', 'session' => false],
     'pro' => ['verbe' => 'GET', 'session' => true],
     'pro-agenda' => ['verbe' => 'GET', 'session' => true],
+    'pro-clientele' => ['verbe' => 'GET', 'session' => true],
     'moi' => ['verbe' => 'GET', 'session' => true],
     'inscription' => ['verbe' => 'POST', 'session' => false],
     'connexion' => ['verbe' => 'POST', 'session' => false],
@@ -127,6 +129,13 @@ try {
                 new RendezVousRepository($pdo),
                 new DevisRepository($pdo)
             ))->semaine($lundi);
+            break;
+
+        case 'pro-clientele':
+            (new ClientController(
+                new ArtisanRepository($pdo),
+                new ClientRepository($pdo)
+            ))->clientele();
             break;
 
         case 'inscription':

@@ -15,7 +15,7 @@ const ETATS = {
   "aucun-compte": { classe: "is-error", titre: "Aucun compte pro identifié. Reconnecte-toi pour charger ton planning." },
   "sans-fiche": { classe: "is-error", titre: "Ce compte n'a pas de fiche artisan en base : l'agenda reste vide." },
   erreur: { classe: "is-error", titre: "Planning inaccessible : le serveur n'a pas répondu." },
-  ok: { classe: "", titre: "Rendez-vous lus en base (table rendez_vous), semaine ISO du lundi au dimanche." },
+  ok: { classe: "", titre: "Rendez-vous lus en base, semaine ISO du lundi au dimanche." },
 };
 
 export default function Planning() {

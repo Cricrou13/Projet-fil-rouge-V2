@@ -25,8 +25,6 @@ final class Utilisateur
             prenom: (string) $row['prenom'],
             email: (string) $row['email'],
             role: (string) $row['role'],
-            // null pour un client : la colonne vient de la jointure avec artisans,
-            // et le menu pro s'en sert pour sa couleur d'accent.
             metier: $row['metier'] === null ? null : (string) $row['metier'],
             motDePasseHash: (string) $row['mot_de_passe'],
         );
@@ -42,11 +40,6 @@ final class Utilisateur
         return password_verify($motDePasse, $this->motDePasseHash);
     }
 
-    /**
-     * Ce que le client a le droit de savoir sur le compte connecte. Le hash ne
-     * sort jamais de l'entite : le renvoyer, c'est donner matiere a une attaque
-     * hors ligne sur les mots de passe.
-     */
     public function toSession(): array
     {
         return [

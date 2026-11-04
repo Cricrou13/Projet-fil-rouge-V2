@@ -107,6 +107,13 @@ export async function getAgendaPro(lundi = null) {
     return statutAttente(await requeteV2('pro-agenda', { params: { lundi } }));
 }
 
+// Clientele de l'artisan connecte. Aucun identifiant en entree, comme pour les deux
+// routes ci-dessus : la session designe la fiche, donc une URL ne peut pas demander
+// les clients d'un autre etablissement.
+export async function getClientele() {
+    return statutAttente(await requeteV2('pro-clientele'));
+}
+
 // Un 404 de lecture se traduisait en cle ('404' = pas de fiche artisan). Cote
 // ecritures, le 404 dit autre chose (« cette prestation n'est pas a toi ») et le
 // serveur l'accompagne d'une phrase : ici on montre la phrase, on ne la code pas.

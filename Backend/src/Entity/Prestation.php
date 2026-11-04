@@ -12,8 +12,6 @@ final class Prestation
         private string $description,
         private string $tarif,
         private int $dureeEstimee,
-        // tinyint(1) NULL en base : null veut dire « statut inconnu », ce qui
-        // n'est ni « en ligne » ni « masque ». Garde le trois valeurs.
         private ?bool $actif,
     ) {
     }
@@ -26,8 +24,6 @@ final class Prestation
             idPrestation: (int) $row['id_prestation'],
             libelle: (string) $row['libelle'],
             description: (string) $row['description'],
-            // decimal(15,2) : string, jamais float, pour ne pas introduire
-            // d'erreur binaire sur un montant.
             tarif: (string) $row['tarif'],
             dureeEstimee: (int) $row['duree_estimee'],
             actif: $actif === null ? null : ((int) $actif) === 1,

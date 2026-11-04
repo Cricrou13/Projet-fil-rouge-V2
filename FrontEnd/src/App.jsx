@@ -9,6 +9,7 @@ import Auth from "./pages/public/Auth";
 import DashBoard from "./pages/pro/DashBoard";
 import Planning from "./pages/pro/Agenda";
 import Prestations from "./components/pro/PrestationTable";
+import Clients from "./pages/pro/Clients";
 import SectionIndisponible from "./pages/pro/SectionIndisponible";
 import ProLogin from "./pages/pro/ProLogin";
 import Devis from "./pages/public/Devis";
@@ -58,9 +59,10 @@ export default function App() {
             <Route path="tableau-de-bord" element={<DashBoard />} />
             <Route path="planning" element={<Planning />} />
             <Route path="prestations" element={<Prestations />} />
-            {/* Les liens « Clientèle » et « Paramètres » de la sidebar pointent ici
-                en attendant leur page : sans cette ligne, aucun match ne remonte et
-                c'est tout #root qui se vide, pas seulement <main>. */}
+            <Route path="clientele" element={<Clients />} />
+            {/* Le lien « Paramètres » de la sidebar pointe ici en attendant sa page :
+                sans cette ligne, aucun match ne remonte et c'est tout #root qui se
+                vide, pas seulement <main>. */}
             <Route path="*" element={<SectionIndisponible />} />
           </Route>
         </Routes>

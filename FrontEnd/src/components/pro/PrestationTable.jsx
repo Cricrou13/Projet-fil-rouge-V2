@@ -177,13 +177,13 @@ export default function Prestations() {
       )}
       {etat === "sans-fiche" && (
         <div className="readonly-banner is-error">
-          Ce compte n’a pas de fiche artisan associée : il n’a pas de catalogue à gérer.
+         {/*  Ce compte n’a pas de fiche artisan associée : il n’a pas de catalogue à gérer. */}
         </div>
       )}
       {etat === "ok" && (
         <div className="readonly-banner">
-          Catalogue chargé depuis la base. Ajouter, masquer et supprimer écrivent
-          vraiment dans la table prestations.
+          {/* Catalogue chargé depuis la base. Ajouter, masquer et supprimer écrivent
+          vraiment dans la table prestations. */}
         </div>
       )}
       {/* EN-TÊTE DE LA PAGE */}

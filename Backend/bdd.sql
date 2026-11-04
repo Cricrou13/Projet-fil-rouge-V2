@@ -133,3 +133,51 @@ INSERT INTO `prestations` (`libelle`, `description`, `tarif`, `duree_estimee`, `
 VALUES 
 ('Diagnostic électrique & sécurité', 'Contrôle complet du tableau électrique et des prises.', 95.00, 60, 1, 4),
 ('Pose de tableau électrique aux normes', 'Remplacement complet d\'un ancien tableau par un modèle modulaire.', 450.00, 180, 1, 4);
+
+DELIMITER $$
+
+DROP TRIGGER IF EXISTS `artisans_exclusivite_insert` $$
+CREATE TRIGGER `artisans_exclusivite_insert`
+BEFORE INSERT ON `artisans`
+FOR EACH ROW
+BEGIN
+  IF (SELECT COUNT(*) FROM `client` WHERE `Id_utilisateur` = NEW.`Id_utilisateur`) > 0 THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Ce compte a deja une fiche client : il ne peut pas aussi etre artisan.';
+  END IF;
+END $$
+
+DROP TRIGGER IF EXISTS `artisans_exclusivite_update` $$
+CREATE TRIGGER `artisans_exclusivite_update`
+BEFORE UPDATE ON `artisans`
+FOR EACH ROW
+BEGIN
+  IF (SELECT COUNT(*) FROM `client` WHERE `Id_utilisateur` = NEW.`Id_utilisateur`) > 0 THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Ce compte a deja une fiche client : il ne peut pas aussi etre artisan.';
+  END IF;
+END $$
+
+DROP TRIGGER IF EXISTS `client_exclusivite_insert` $$
+CREATE TRIGGER `client_exclusivite_insert`
+BEFORE INSERT ON `client`
+FOR EACH ROW
+BEGIN
+  IF (SELECT COUNT(*) FROM `artisans` WHERE `Id_utilisateur` = NEW.`Id_utilisateur`) > 0 THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Ce compte a deja une fiche artisan : il ne peut pas aussi etre client.';
+  END IF;
+END $$
+
+DROP TRIGGER IF EXISTS `client_exclusivite_update` $$
+CREATE TRIGGER `client_exclusivite_update`
+BEFORE UPDATE ON `client`
+FOR EACH ROW
+BEGIN
+  IF (SELECT COUNT(*) FROM `artisans` WHERE `Id_utilisateur` = NEW.`Id_utilisateur`) > 0 THEN
+    SIGNAL SQLSTATE '45000'
+      SET MESSAGE_TEXT = 'Ce compte a deja une fiche artisan : il ne peut pas aussi etre client.';
+  END IF;
+END $$
+
+DELIMITER ;
