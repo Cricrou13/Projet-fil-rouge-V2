@@ -1,14 +1,9 @@
 @use "../../styles/variables" as *;
+// Ni fond ni marge ici : le champ gris et la gouttière appartiennent à <main>.
 .dashboard-modern {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1.75rem;
-  background-color: #F8FAFC;
-  min-height: calc(100vh - 70px);
-  @media (max-width: 640px) {
-    padding: 1rem;
-  }
 }
 /* NOTIFICATION TOAST */
 .dashboard-toast {

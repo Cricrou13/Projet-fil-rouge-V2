@@ -10,9 +10,13 @@
   flex-direction: column;
   min-height: 100vh;
 
+  // Le fond de l'espace pro est au layout, pas aux pages : peint par une page, il
+  // s'arrêtait à la gouttière de <main> et laissait un liseré blanc autour.
+  // Aucune marge latérale : le contenu court du bord de la sidebar au bord droit.
   main {
     flex: 1;
-    padding: 2rem;
+    padding: 2rem 0;
+    background-color: #F8FAFC;
   }
 }
 

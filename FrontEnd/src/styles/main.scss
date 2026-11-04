@@ -7,11 +7,29 @@
   @return map-get($metiers, $metier);
 }
 
+// Un ascenseur vertical occupe 15px sur ce poste. Sans cette règle, ces 15px
+// n'existent que sur les pages plus hautes que l'écran : le bord droit du cadre
+// saute de 15px en passant du tableau de bord (qui défile) à la clientèle (qui ne
+// défile pas). `scroll` réserve la gouttière pour toutes les pages, longues comme
+// courtes, donc le cadre a toujours la même largeur.
+html {
+  overflow-y: scroll;
+}
+
 body {
   background-color: var(--color-bg);
   font-family: var(--font-family);
   color: var(--color-text);
   margin: 0;
   display: flex;
-  justify-content: center;
+}
+
+// `display: flex` plus haut fit de `body` un conteneur : sans cette règle, #root
+// se dimensionnait au max-content de ce qu'il contient et `justify-content: center`
+// le collait au milieu, laissant du vide des deux côtés de toute l'app. Les pages
+// publiques ont chacune leur conteneur centré (`margin: 0 auto`), elles n'ont
+// jamais eu besoin de ça ; l'espace pro, lui, doit aller d'un bord à l'autre.
+#root {
+  flex: 1;
+  min-width: 0;
 }

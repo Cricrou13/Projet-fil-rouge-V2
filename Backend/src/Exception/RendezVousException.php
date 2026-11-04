@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Exception;
 
+use DateTimeImmutable;
+
 /**
  * Erreurs de la demande de rendez-vous. Le client envoie un `id_artisan` : c'est
  * la premiere route ou un identifiant de la requete est legitime, parce qu'il ne
@@ -36,8 +38,28 @@ final class RendezVousException extends EcritureException
     public static function chevauchement(string $debut, string $fin): self
     {
         return new self(
-            'L\'artisan a déjà un rendez-vous entre ' . $debut . ' et ' . $fin . '.',
+            'L\'artisan a déjà un rendez-vous ' . self::horairesLisibles($debut, $fin)
+                . '. Ta demande n\'a pas été enregistrée.',
             409
         );
+    }
+
+    /**
+     * Les deux valeurs sortent d'une colonne DATETIME deja remplie par MySQL : la
+     * relecture est naive, sans fuseau, pour rendre l'heure affichee en base (Paris)
+     * et jamais une conversion PHP (UTC sur ce poste).
+     */
+    private static function horairesLisibles(string $debut, string $fin): string
+    {
+        $debutDate = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $debut);
+        $finDate = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $fin);
+
+        if ($debutDate->format('Y-m-d') === $finDate->format('Y-m-d')) {
+            return 'le ' . $debutDate->format('d/m/Y') . ' de ' . $debutDate->format('H:i')
+                . ' à ' . $finDate->format('H:i');
+        }
+
+        return 'du ' . $debutDate->format('d/m/Y') . ' à ' . $debutDate->format('H:i')
+            . ' au ' . $finDate->format('d/m/Y') . ' à ' . $finDate->format('H:i');
     }
 }

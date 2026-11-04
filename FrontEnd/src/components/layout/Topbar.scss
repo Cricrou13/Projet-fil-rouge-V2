@@ -1,9 +1,13 @@
+@use "../../styles/mixins" as *;
+
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   background-color: #F9FAFB;
-  padding: 16px 24px;
+  // Le contenu juste en dessous n'a aucune gouttière latérale (`.pro-content main`
+  // = `2rem 0`) : 24px ici décalait le salut d'un cran par rapport aux cartes.
+  padding: 16px 0;
 
   &__left {
     display: flex;
@@ -81,5 +85,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+}
+
+// En mobile, `main` reprend 1rem de gouttière : le Topbar suit, sinon le décalage
+// réapparaît, cette fois inversé.
+@include mobile {
+  .topbar {
+    padding: 16px 1rem;
   }
 }

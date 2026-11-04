@@ -1,14 +1,9 @@
 @use "../../styles/variables" as *;
+// Même règle que le tableau de bord : le fond et les marges viennent de <main>.
 .prestations-page {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1.75rem;
-  background-color: #F8FAFC;
-  min-height: calc(100vh - 70px);
-  @media (max-width: 640px) {
-    padding: 1rem;
-  }
 }
 /* NOTIFICATION TOAST */
 .toast-notification {
