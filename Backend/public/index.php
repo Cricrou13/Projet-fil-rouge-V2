@@ -8,12 +8,17 @@ use App\Controller\AgendaController;
 use App\Controller\ArtisanController;
 use App\Controller\AuthController;
 use App\Controller\InscriptionController;
+use App\Controller\PrestationController;
+use App\Controller\RendezVousController;
 use App\Repository\ArtisanRepository;
 use App\Repository\ClientRepository;
 use App\Repository\DevisRepository;
+use App\Repository\PrestationRepository;
 use App\Repository\RendezVousRepository;
 use App\Repository\UtilisateurRepository;
 use App\Service\InscriptionService;
+use App\Service\PrestationService;
+use App\Service\RendezVousService;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -40,6 +45,17 @@ const ROUTES = [
     'inscription' => ['verbe' => 'POST', 'session' => false],
     'connexion' => ['verbe' => 'POST', 'session' => false],
     'deconnexion' => ['verbe' => 'POST', 'session' => true],
+    // Les trois ecritures du catalogue. Le verbe porte le sens de l'action : creer
+    // est POST, changer un champ existant est PATCH, retirer la ligne est DELETE.
+    // Une seule route par verbe, sinon la table `ROUTES` ne pourrait plus annoncer
+    // qu'un seul `Allow` a la requete refusee.
+    'pro-prestation-creer' => ['verbe' => 'POST', 'session' => true],
+    'pro-prestation-visibilite' => ['verbe' => 'PATCH', 'session' => true],
+    'pro-prestation-supprimer' => ['verbe' => 'DELETE', 'session' => true],
+    // Le client reserving : a sa fiche et a ses prestations, jamais a son
+    // identite. Session obligatoire parce que `rendez_vous.id_client` doit etre la
+    // ligne du compte connecte.
+    'rdv-demander' => ['verbe' => 'POST', 'session' => true],
 ];
 
 /** Reponse emitted par le routeur lui-même, avant qu'un controller existe. */
@@ -124,6 +140,33 @@ try {
                 new ArtisanRepository($pdo),
                 new ClientRepository($pdo)
             )))->creer();
+            break;
+
+        case 'pro-prestation-creer':
+        case 'pro-prestation-visibilite':
+        case 'pro-prestation-supprimer':
+            $controller = new PrestationController(new PrestationService(
+                new PrestationRepository($pdo),
+                new ArtisanRepository($pdo)
+            ));
+
+            if ($route === 'pro-prestation-creer') {
+                $controller->creer();
+            } elseif ($route === 'pro-prestation-visibilite') {
+                $controller->visibilite();
+            } else {
+                $controller->supprimer();
+            }
+            break;
+
+        case 'rdv-demander':
+            (new RendezVousController(new RendezVousService(
+                $pdo,
+                new RendezVousRepository($pdo),
+                new PrestationRepository($pdo),
+                new ArtisanRepository($pdo),
+                new ClientRepository($pdo)
+            )))->demander();
             break;
 
         case 'connexion':

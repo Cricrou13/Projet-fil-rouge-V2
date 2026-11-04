@@ -45,4 +45,10 @@ final class Prestation
             'actif' => $this->actif,
         ];
     }
+
+    /** Le service en a besoin pour nommer la prestation dans un message de conflit. */
+    public function libelle(): string
+    {
+        return $this->libelle;
+    }
 }

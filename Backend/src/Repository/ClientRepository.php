@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace App\Repository;
 
 /**
- * Table fille des comptes clients. Pas d'entite ni de methode de lecture ici :
- * aucune route ne montre un client pour l'instant, et `devis.id_client` comme
- * `rendez_vous.id_client` pointent sur cette table sans qu'un ecran les lise.
- * L'ajouter quand /reservation aura besoin d'un client serait du code sans
- * appelant.
+ * Table fille des comptes clients. Pas d'entite ici : aucune route ne montre un
+ * client. `rendez_vous.id_client` pointe sur cette table, et la reservation en a
+ * maintenant un appelant -- mais seulement pour savoir QUELLE ligne est celle du
+ * compte connecte.
  */
 class ClientRepository extends AbstractRepository
 {
@@ -26,5 +25,19 @@ class ClientRepository extends AbstractRepository
         $stmt->execute([$adresseFacturation, $codePostal, $ville, $idUtilisateur]);
 
         return (int) $this->db->lastInsertId();
+    }
+
+    /**
+     * Meme cle de correspondance que `artisans.Id_utilisateur`, meme origine : la
+     * session. Un `id_client` passe dans le corps de la reservation serait un
+     * rendez-vous pose au nom d'un autre.
+     */
+    public function idClientParIdUtilisateur(int $idUtilisateur): ?int
+    {
+        $stmt = $this->db->prepare('SELECT id_client FROM client WHERE Id_utilisateur = ?');
+        $stmt->execute([$idUtilisateur]);
+        $id = $stmt->fetchColumn();
+
+        return $id === false ? null : (int) $id;
     }
 }

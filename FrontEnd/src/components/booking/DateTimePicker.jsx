@@ -71,7 +71,7 @@ export default function DateTimePicker({ date, setDate, heure, setHeure }) {
       ) : (
         <div className="choose-date-first">
           <CalendarIcon size={24} />
-          <p>Veuillez choisir une date ci-dessus pour afficher les créneaux disponibles.</p>
+          <p>Veuillez choisir une date ci-dessus pour afficher les horaires proposés.</p>
         </div>
       )}
     </div>

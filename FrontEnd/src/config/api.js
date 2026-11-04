@@ -106,3 +106,49 @@ export async function getPro() {
 export async function getAgendaPro(lundi = null) {
     return statutAttente(await requeteV2('pro-agenda', { params: { lundi } }));
 }
+
+// Un 404 de lecture se traduisait en cle ('404' = pas de fiche artisan). Cote
+// ecritures, le 404 dit autre chose (« cette prestation n'est pas a toi ») et le
+// serveur l'accompagne d'une phrase : ici on montre la phrase, on ne la code pas.
+async function ecritureV2(route, method, corps) {
+    const reponse = await requeteV2(route, { method, corps });
+    const resultat = await reponse.json().catch(() => ({}));
+
+    if (!reponse.ok) {
+        throw new Error(resultat.error || `Erreur HTTP : ${reponse.status}`);
+    }
+
+    return resultat;
+}
+
+// Corps attendu par la creation : { libelle, description, tarif, duree_estimee }.
+// `tarif` part en CHAINE : le serveur refuse un nombre flottant, un prix comme
+// 0.1 n'existe pas en binaire et il serait arrondi a tort.
+export async function creerPrestation(prestation) {
+    return ecritureV2('pro-prestation-creer', 'POST', prestation);
+}
+
+export async function changerVisibilitePrestation(idPrestation, actif) {
+    return ecritureV2('pro-prestation-visibilite', 'PATCH', { id_prestation: idPrestation, actif });
+}
+
+export async function supprimerPrestation(idPrestation) {
+    return ecritureV2('pro-prestation-supprimer', 'DELETE', { id_prestation: idPrestation });
+}
+
+/**
+ * Demande de rendez-vous cote client. Corps : { id_artisan, date, heure,
+ * prestations: [id...], remarque }.
+ *
+ * `id_artisan` est le premier identifiant que le front envoie et le seul que le
+ * serveur accepte : il designe OU l'on reserve, pas QUI reserve. L'identite du
+ * client vient de la session, comme partout ailleurs ; `date` est un AAAA-MM-JJ et
+ * `heure` un HH:MM, les deux formats produits par le champ `type="date"` et par la
+ * grille de creneaux.
+ *
+ * @returns {Promise<object>} { rendez_vous: { id_rdv, statut, montant_total, ... } }
+ * @throws {Error} message du serveur (chevauchement, prestation retiree, date passee)
+ */
+export async function rdvDemander(corps) {
+    return ecritureV2('rdv-demander', 'POST', corps);
+}

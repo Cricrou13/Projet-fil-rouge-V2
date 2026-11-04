@@ -1,12 +1,11 @@
-import { Calendar, Clock, MapPin, User, Mail, Phone, ShieldCheck } from "lucide-react";
+import { Calendar, Clock, MapPin, User, Mail, Phone } from "lucide-react";
 import "./BookingSummary.scss";
 
-export default function BookingSummary({ service, date, heure, pro, clientInfo, setClientInfo }) {
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setClientInfo((prev) => ({ ...prev, [name]: value }));
-  };
-
+// Coordonnées affichées, pas modifiables ici : la route d'écriture ne lit ni nom,
+// ni e-mail, ni téléphone dans la requête. L'artisan verra le prénom et le nom du
+// compte connecté, ceux que la session désigne. Laisser éditer ces champs donnerait
+// une demande qui n'enregistre pas la modification.
+export default function BookingSummary({ service, date, heure, pro, clientInfo }) {
   return (
     <div className="booking-summary-step">
       
@@ -28,7 +27,7 @@ export default function BookingSummary({ service, date, heure, pro, clientInfo, 
           </div>
           <div className="overview-item">
             <span className="label">Lieu de RDV :</span>
-            <span className="val"><MapPin size={14} /> {pro?.ville} (Salon ou Domicile)</span>
+            <span className="val"><MapPin size={14} /> {pro?.ville}</span>
           </div>
         </div>
         <div className="overview-price-bar">
@@ -37,64 +36,36 @@ export default function BookingSummary({ service, date, heure, pro, clientInfo, 
         </div>
       </div>
 
-      {/* COORDONNÉES CLIENT POUR RAPPEL */}
+      {/* COORDONNEES DU COMPTE, telles que la session les transmet */}
       <div className="client-fields-card">
-        <h4>Vos coordonnées pour la confirmation</h4>
-        <p className="fields-subtitle">Ces informations sont reprises dans le message que vous adressez à InfinTime.</p>
-        
+        <h4>Les coordonnées transmises à l'artisan</h4>
+        <p className="fields-subtitle">
+          Ce sont celles de votre compte. La demande n'envoie que le créneau et la
+          prestation : c'est votre compte qui parle, pas un formulaire. Pour changer
+          un nom ou un téléphone, passez par votre profil.
+        </p>
+
         <div className="fields-grid">
-          
-          {/* Nom & Prénom */}
           <div className="field-group">
-            <div className="label-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-              <User size={15} aria-hidden="true" />
-              <label htmlFor="client-nom">Nom & Prénom</label>
-            </div>
-            <input 
-              id="client-nom"
-              type="text" 
-              name="nom" 
-              aria-label="Nom & Prénom"
-              value={clientInfo?.nom || ''} 
-              onChange={handleChange}
-              required 
-            />
+            <span className="field-label">
+              <User size={15} aria-hidden="true" /> Nom &amp; Prénom
+            </span>
+            <p className="field-valeur">{clientInfo?.nom || "—"}</p>
           </div>
 
-          {/* Téléphone */}
           <div className="field-group">
-            <div className="label-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-              <Phone size={15} aria-hidden="true" />
-              <label htmlFor="client-tel">Téléphone</label>
-            </div>
-            <input 
-              id="client-tel"
-              type="tel" 
-              name="telephone" 
-              aria-label="Téléphone"
-              value={clientInfo?.telephone || ''} 
-              onChange={handleChange}
-              required 
-            />
+            <span className="field-label">
+              <Phone size={15} aria-hidden="true" /> Téléphone
+            </span>
+            <p className="field-valeur">{clientInfo?.telephone || "—"}</p>
           </div>
 
-          {/* E-mail */}
           <div className="field-group full">
-            <div className="label-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-              <Mail size={15} aria-hidden="true" />
-              <label htmlFor="client-email">Adresse e-mail</label>
-            </div>
-            <input 
-              id="client-email"
-              type="email" 
-              name="email" 
-              aria-label="Adresse e-mail"
-              value={clientInfo?.email || ''} 
-              onChange={handleChange}
-              required 
-            />
+            <span className="field-label">
+              <Mail size={15} aria-hidden="true" /> Adresse e-mail
+            </span>
+            <p className="field-valeur">{clientInfo?.email || "—"}</p>
           </div>
-
         </div>
       </div>
     </div>

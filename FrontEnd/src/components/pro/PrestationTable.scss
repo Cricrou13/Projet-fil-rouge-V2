@@ -28,6 +28,12 @@
   z-index: 9999;
   animation: toastIn 0.3s ease;
 }
+/* Refus du serveur : memes tokens que .readonly-banner.is-error, pour que
+   « masquée » et « rattachée à des rendez-vous » ne se ressemblent pas. */
+.toast-notification.is-error {
+  background: #DC2626;
+  box-shadow: 0 10px 25px rgba(185, 28, 28, 0.25);
+}
 @keyframes toastIn {
   from { transform: translateY(-20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
