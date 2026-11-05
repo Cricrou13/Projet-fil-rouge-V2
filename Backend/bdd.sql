@@ -37,6 +37,22 @@ CREATE TABLE `client` (
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
+-- Table structure for table `concerner`
+
+
+DROP TABLE IF EXISTS `concerner`;
+
+CREATE TABLE `concerner` (
+  `id_prestation` int NOT NULL,
+  `id_rdv` int NOT NULL,
+  `prix_applique` decimal(15,2) NOT NULL,
+  PRIMARY KEY (`id_prestation`,`id_rdv`),
+  KEY `id_rdv` (`id_rdv`),
+  CONSTRAINT `concerner_ibfk_1` FOREIGN KEY (`id_prestation`) REFERENCES `prestations` (`id_prestation`),
+  CONSTRAINT `concerner_ibfk_2` FOREIGN KEY (`id_rdv`) REFERENCES `rendez_vous` (`id_rdv`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
 
 -- Table structure for table `devis`
 
@@ -56,6 +72,24 @@ CREATE TABLE `devis` (
   KEY `id_client` (`id_client`),
   CONSTRAINT `devis_ibfk_1` FOREIGN KEY (`id_artisan`) REFERENCES `artisans` (`id_artisan`),
   CONSTRAINT `devis_ibfk_2` FOREIGN KEY (`id_client`) REFERENCES `client` (`id_client`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+
+-- Table structure for table `disponibilites`
+
+
+DROP TABLE IF EXISTS `disponibilites`;
+
+CREATE TABLE `disponibilites` (
+  `id_disponibilite` int NOT NULL AUTO_INCREMENT,
+  `jour_semaine` int NOT NULL,
+  `date_specifique` date NOT NULL,
+  `heure_debut` time NOT NULL,
+  `heure_fin` time NOT NULL,
+  `id_artisan` int NOT NULL,
+  PRIMARY KEY (`id_disponibilite`),
+  KEY `id_artisan` (`id_artisan`),
+  CONSTRAINT `disponibilites_ibfk_1` FOREIGN KEY (`id_artisan`) REFERENCES `artisans` (`id_artisan`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 
@@ -113,26 +147,11 @@ CREATE TABLE `utilisateurs` (
   `telephone` varchar(15) DEFAULT NULL,
   `date_creation` datetime NOT NULL,
   `role` varchar(50) NOT NULL,
-  PRIMARY KEY (`Id_utilisateur`)
+  PRIMARY KEY (`Id_utilisateur`),
+  UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
-
-INSERT INTO `prestations` (`libelle`, `description`, `tarif`, `duree_estimee`, `actif`, `id_artisan`)
-VALUES 
-('Coupe femme & brushing', 'Shampoing traitant, coupe personnalisée et brushing soigné.', 42.00, 45, 1, 2),
-('Coloration complète', 'Couleur éclatante sans ammoniaque et soin nourrissant.', 65.00, 90, 1, 2),
-('Coupe homme classique', 'Shampoing, coupe ciseaux/tondeuse et coiffage.', 25.00, 30, 1, 2);
--- Prestations pour Thomas (id_artisan = 3, Plomberie)
-INSERT INTO `prestations` (`libelle`, `description`, `tarif`, `duree_estimee`, `actif`, `id_artisan`)
-VALUES 
-('Dépannage & Recherche de fuite', 'Diagnostic complet et réparation immédiate avec déplacement inclus.', 89.00, 60, 1, 3),
-('Remplacement robinetterie', 'Démontage de l\'ancien équipement et pose d\'un mitigeur neuf.', 120.00, 60, 1, 3);
--- Prestations pour Alexandre (id_artisan = 4, Électricité)
-INSERT INTO `prestations` (`libelle`, `description`, `tarif`, `duree_estimee`, `actif`, `id_artisan`)
-VALUES 
-('Diagnostic électrique & sécurité', 'Contrôle complet du tableau électrique et des prises.', 95.00, 60, 1, 4),
-('Pose de tableau électrique aux normes', 'Remplacement complet d\'un ancien tableau par un modèle modulaire.', 450.00, 180, 1, 4);
 
 DELIMITER $$
 
@@ -181,3 +200,4 @@ BEGIN
 END $$
 
 DELIMITER ;
+
