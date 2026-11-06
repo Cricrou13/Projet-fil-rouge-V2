@@ -20,9 +20,6 @@ import { plageHoraires } from "../../utils/dateSemaine";
 import { cleStatut, libelleStatut } from "../../data/statuts";
 import "./DashBoard.scss";
 
-// `rendez_vous` ne porte ni prestation ni tarif, et aucune table ne stocke de note
-// client ni de mémo : les trois blocs qui affichaient ces données passent en
-// « indisponible » au lieu de reprendre les valeurs du mock.
 const ECRITURE_INDISPONIBLE =
   "Aucune route d'écriture n'existe encore : rien ne sera modifié en base.";
 
@@ -52,12 +49,9 @@ const ETATS = {
 };
 
 export default function Dashboard() {
-  // Aucune identité ne sort du front : la session du serveur désigne la fiche,
-  // le cookie part seul avec la requête.
 
   const [agenda, setAgenda] = useState(null);
   const [etat, setEtat] = useState("chargement");
-  // Les mémos ne vivent que dans cet état : aucune table de notes n'existe.
   const [memos, setMemos] = useState([]);
   const [nouveauMemo, setNouveauMemo] = useState("");
   const [notification, setNotification] = useState(null);
@@ -78,9 +72,6 @@ export default function Dashboard() {
       });
   }, []);
 
-  // « aujourd'hui » vient de la base, pas de l'horloge du navigateur : sinon le
-  // fuseau du poste peut décaler la liste d'un jour. Comparer `jour` en chaînes
-  // 'AAAA-MM-JJ' est suffisant : l'ordre lexicographique suit l'ordre calendaire.
   const { rdvDuJour, rdvAVenir } = useMemo(() => {
     const tous = agenda?.rendez_vous ?? [];
     const aujourdhui = agenda?.aujourdhui;

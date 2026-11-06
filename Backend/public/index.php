@@ -58,6 +58,9 @@ const ROUTES = [
     // identite. Session obligatoire parce que `rendez_vous.id_client` doit etre la
     // ligne du compte connecte.
     'rdv-demander' => ['verbe' => 'POST', 'session' => true],
+    // La liste cote client. `session` parce que le seul moyen de savoir de qui
+    // lire les rendez-vous est le cookie : aucun identifiant n'entre dans la requete.
+    'mes-rendez-vous' => ['verbe' => 'GET', 'session' => true],
 ];
 
 /** Reponse emitted par le routeur lui-même, avant qu'un controller existe. */
@@ -169,13 +172,24 @@ try {
             break;
 
         case 'rdv-demander':
-            (new RendezVousController(new RendezVousService(
-                $pdo,
-                new RendezVousRepository($pdo),
-                new PrestationRepository($pdo),
-                new ArtisanRepository($pdo),
-                new ClientRepository($pdo)
-            )))->demander();
+        case 'mes-rendez-vous':
+            $controller = new RendezVousController(
+                new RendezVousService(
+                    $pdo,
+                    new RendezVousRepository($pdo),
+                    new PrestationRepository($pdo),
+                    new ArtisanRepository($pdo),
+                    new ClientRepository($pdo)
+                ),
+                new ClientRepository($pdo),
+                new RendezVousRepository($pdo)
+            );
+
+            if ($route === 'rdv-demander') {
+                $controller->demander();
+            } else {
+                $controller->mesRendezVous();
+            }
             break;
 
         case 'connexion':

@@ -3,7 +3,12 @@ import { useOutletContext } from "react-router-dom";
 import { AlertCircle, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { getMetierConfig } from "../../data/metiers";
 import { getAgendaPro } from "../../config/api";
-import { decaleJours, labelJour, plageHoraires, semaineDe } from "../../utils/dateSemaine";
+import {
+  decaleJours,
+  labelJour,
+  plageHoraires,
+  semaineDe,
+} from "../../utils/dateSemaine";
 import { libelleStatut } from "../../data/statuts";
 import "./Agenda.scss";
 
@@ -12,18 +17,29 @@ const ECRITURE_INDISPONIBLE =
 
 const ETATS = {
   chargement: { classe: "", titre: "Chargement de la semaine…" },
-  "aucun-compte": { classe: "is-error", titre: "Aucun compte pro identifié. Reconnecte-toi pour charger ton planning." },
-  "sans-fiche": { classe: "is-error", titre: "Ce compte n'a pas de fiche artisan en base : l'agenda reste vide." },
-  erreur: { classe: "is-error", titre: "Planning inaccessible : le serveur n'a pas répondu." },
-  ok: { classe: "", titre: "Rendez-vous lus en base, semaine ISO du lundi au dimanche." },
+  "aucun-compte": {
+    classe: "is-error",
+    titre:
+      "Aucun compte pro identifié. Reconnecte-toi pour charger ton planning.",
+  },
+  "sans-fiche": {
+    classe: "is-error",
+    titre: "Ce compte n'a pas de fiche artisan en base : l'agenda reste vide.",
+  },
+  erreur: {
+    classe: "is-error",
+    titre: "Planning inaccessible : le serveur n'a pas répondu.",
+  },
+  ok: {
+    classe: "",
+    titre: "Rendez-vous lus en base, semaine ISO du lundi au dimanche.",
+  },
 };
 
 export default function Planning() {
   const { metier = "default" } = useOutletContext() || {};
   const config = getMetierConfig(metier);
 
-  // null = « semaine courante », laissée au calcul de la base. Un lundi demandé
-  // est normalisé côté serveur : le front n'a jamais à connaître l'heure UTC.
   const [lundiDemande, setLundiDemande] = useState(null);
   const [agenda, setAgenda] = useState(null);
   const [etat, setEtat] = useState("chargement");
@@ -51,7 +67,9 @@ export default function Planning() {
   return (
     <div className="planning-container">
       <div className={`etat-carte ${bandeau.classe}`}>
-        {etat === "erreur" || etat === "sans-fiche" || etat === "aucun-compte" ? (
+        {etat === "erreur" ||
+        etat === "sans-fiche" ||
+        etat === "aucun-compte" ? (
           <AlertCircle size={16} />
         ) : (
           <ChevronRight size={16} />
@@ -80,7 +98,11 @@ export default function Planning() {
             >
               <ChevronLeft size={16} /> Précédent
             </button>
-            <button type="button" className="btn-today" onClick={() => setLundiDemande(null)}>
+            <button
+              type="button"
+              className="btn-today"
+              onClick={() => setLundiDemande(null)}
+            >
               Aujourd'hui
             </button>
             <button
@@ -92,7 +114,12 @@ export default function Planning() {
               Suivant <ChevronRight size={16} />
             </button>
           </div>
-          <button type="button" className="btn-add-rdv" disabled title={ECRITURE_INDISPONIBLE}>
+          <button
+            type="button"
+            className="btn-add-rdv"
+            disabled
+            title={ECRITURE_INDISPONIBLE}
+          >
             <Plus size={18} />
             <span>Bloquer un créneau</span>
           </button>
@@ -106,7 +133,10 @@ export default function Planning() {
           const evenements = rendezVous.filter((rdv) => rdv.jour === jour);
 
           return (
-            <div key={jour} className={`agenda-column ${estAujourdhui ? "is-today" : ""}`}>
+            <div
+              key={jour}
+              className={`agenda-column ${estAujourdhui ? "is-today" : ""}`}
+            >
               <div className="day-header">
                 {labelJour(jour)} {estAujourdhui && "(Auj)"}
               </div>
@@ -119,7 +149,9 @@ export default function Planning() {
                     style={{ borderLeftColor: config.color }}
                     title={libelleStatut(rdv.statut)}
                   >
-                    <span className="event-time">{plageHoraires(rdv.date_heure_debut, rdv.date_heure_fin)}</span>
+                    <span className="event-time">
+                      {plageHoraires(rdv.date_heure_debut, rdv.date_heure_fin)}
+                    </span>
                     <span className="event-client">{rdv.nom_client}</span>
                   </div>
                 ))}
@@ -131,8 +163,9 @@ export default function Planning() {
 
       {etat === "ok" && rendezVous.length === 0 && (
         <p className="mention">
-          Aucun rendez-vous cette semaine en base. La table <code>disponibilites</code>{" "}
-          n'est pas non plus interrogée : aucun créneau n'y est enregistré.
+          Aucun rendez-vous cette semaine en base. La table{" "}
+          <code>disponibilites</code> n'est pas non plus interrogée : aucun
+          créneau n'y est enregistré.
         </p>
       )}
     </div>

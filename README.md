@@ -75,7 +75,7 @@ Toutes les requêtes passent par `/index.php?route=<nom>`. La table `ROUTES` dan
 | Lecture | Écriture |
 | --- | --- |
 | `artisans`, `artisan` (publics) | `inscription`, `connexion`, `deconnexion` |
-| `pro`, `pro-agenda`, `pro-clientele`, `moi` (session) | `rdv-demander` (POST, session) |
+| `pro`, `pro-agenda`, `pro-clientele`, `moi`, `mes-rendez-vous` (session) | `rdv-demander` (POST, session) |
 | | `pro-prestation-creer` / `-visibilite` / `-supprimer` |
 
 ## Règles de code
@@ -92,12 +92,13 @@ Le schéma ne peut pas exprimer qu'un compte est **soit** artisan **soit** clien
 ## Ce qui reste à faire
 
 - La table `disponibilites` est vide et aucune route ne l'exploite : les créneaux de l'agenda se déduisent des rendez-vous existants.
-- `MyAppointments.jsx` (espace client) affiche encore des données de maquette.
+- Le client ne peut pas **annuler** un rendez-vous : `mes-rendez-vous` lit la liste, aucune route d'écriture ne change un `statut`, et le bouton reste désactivé côté front. Le schéma ne distingue d'ailleurs pas « refusé par l'artisan » de « annulé par le client ».
+- Rien ne stocke les **avis** : il n'existe pas de table pour ça, la page client n'affiche donc ni note ni commentaire.
 - Les notes liées à un rendez-vous, la page Paramètres et l'espace client complet restent à écrire.
 - Aucun test automatisé, aucune intégration continue : `composer.json` n'a pas de `require-dev`, `package.json` pas de script `test`. Les vérifications disponibles sont `php -l`, `npm run lint`, `npm run build` et la matrice de codes HTTP à la main.
 
 ## Sécurité : ce qui est couvert, ce qui ne l'est pas
 
-Couvert : mots de passe hachés en bcrypt, requêtes préparées partout, identité serveur, aucune donnée personnelle exposée par les routes de lecture (ni email ni téléphone du client sur la clientèle), `Backend/.env` hors dépôt.
+Couvert : mots de passe hachés en bcrypt, requêtes préparées partout, identité serveur, aucune donnée personnelle exposée par les routes de lecture publiques (ni email ni téléphone du client sur la clientèle, et aucune coordonnée privée sur `artisans`), `Backend/.env` hors dépôt. `mes-rendez-vous` est la première route qui transmet une coordonnée privée — le téléphone de l'artisan — mais seulement au compte qui a réservé chez lui : la liste vient de la session, et le téléphone ne sort sur aucune route ouverte.
 
 Non couvert, **à ne pas publier en l'état** : l'application n'est ni déployée ni exposée, et elle ne l'a jamais été testée hors de `localhost`. Avant une mise en ligne, il faudra au minimum un HTTPS, une base qui n'est pas celle du poste de développement, un utilisateur MySQL distinct de `root`, et une politique de session (durée, renouvellement).

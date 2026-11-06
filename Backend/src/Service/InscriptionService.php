@@ -10,6 +10,7 @@ use App\Repository\ArtisanRepository;
 use App\Repository\ClientRepository;
 use App\Repository\UtilisateurRepository;
 use PDO;
+use PDOException;
 use RuntimeException;
 use Throwable;
 
@@ -146,6 +147,10 @@ final class InscriptionService
                 $this->db->rollBack();
             }
 
+            if ($this->doublonEmail($e)) {
+                throw InscriptionException::emailDejaPris();
+            }
+
             throw $e;
         }
 
@@ -158,6 +163,21 @@ final class InscriptionService
         }
 
         return $utilisateur;
+    }
+
+    private function doublonEmail(Throwable $e): bool
+    {
+        if (!$e instanceof PDOException || (int) ($e->errorInfo[1] ?? 0) !== 1062) {
+            return false;
+        }
+
+        if (preg_match("/for key '([^']+)'/", $e->getMessage(), $cle) !== 1) {
+            return false;
+        }
+
+        $segments = explode('.', $cle[1]);
+
+        return strtolower(trim((string) end($segments), '`')) === 'email';
     }
 
     /**

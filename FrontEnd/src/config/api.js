@@ -114,6 +114,13 @@ export async function getClientele() {
     return statutAttente(await requeteV2('pro-clientele'));
 }
 
+// Mes rendez-vous, cote client. Meme règle : le seul moyen de savoir de qui lire la
+// liste est le cookie de session. Un 404 dit ici « ce compte n'a pas de fiche
+// client », ce qui est le cas normal d'un compte artisan.
+export async function getMesRendezVous() {
+    return statutAttente(await requeteV2('mes-rendez-vous'));
+}
+
 // Un 404 de lecture se traduisait en cle ('404' = pas de fiche artisan). Cote
 // ecritures, le 404 dit autre chose (« cette prestation n'est pas a toi ») et le
 // serveur l'accompagne d'une phrase : ici on montre la phrase, on ne la code pas.
