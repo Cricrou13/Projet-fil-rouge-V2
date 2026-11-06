@@ -1,0 +1,56 @@
+.stats-grid {
+  display: flex;      
+  flex-direction: row; 
+  gap: 1.5rem;         
+  width: 100%;         
+  margin-bottom: 2rem;
+
+  .stat-card {
+    flex: 1;          
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid #E5E7EB;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+    &__title {
+      display: block;
+      font-size: 0.85rem;
+      color: #64748B;
+      margin-bottom: 0.5rem;
+    }
+
+    &__value {
+      display: block;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #1E293B;
+    }
+
+    &__subtitle {
+      display: block;
+      font-size: 0.9rem;
+      color: #64748b; 
+      margin-top: 0.5rem;
+
+      &--info {
+        color: #6366f1 !important; 
+        font-weight: 600;
+      }
+
+      &--positive {
+        color: #16a34a !important;
+        font-weight: 600;
+      }
+      
+      &--warning {
+        color: #A16207 !important;
+        font-weight: 600;
+      }
+
+      &--neutral {
+        color: #A16207; 
+      }
+    } // Fin de __subtitle
+  } // Fin de .stat-card
+} // Fin de .stats-grid

@@ -1,0 +1,50 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Entity;
+
+final class Prestation
+{
+    public function __construct(
+        private int $idPrestation,
+        private string $libelle,
+        private string $description,
+        private string $tarif,
+        private int $dureeEstimee,
+        private ?bool $actif,
+    ) {
+    }
+
+    public static function fromRow(array $row): self
+    {
+        $actif = $row['actif'] ?? null;
+
+        return new self(
+            idPrestation: (int) $row['id_prestation'],
+            libelle: (string) $row['libelle'],
+            description: (string) $row['description'],
+            tarif: (string) $row['tarif'],
+            dureeEstimee: (int) $row['duree_estimee'],
+            actif: $actif === null ? null : ((int) $actif) === 1,
+        );
+    }
+
+    public function toArray(): array
+    {
+        return [
+            'id_prestation' => $this->idPrestation,
+            'libelle' => $this->libelle,
+            'description' => $this->description,
+            'tarif' => $this->tarif,
+            'duree_estimee' => $this->dureeEstimee,
+            'actif' => $this->actif,
+        ];
+    }
+
+    /** Le service en a besoin pour nommer la prestation dans un message de conflit. */
+    public function libelle(): string
+    {
+        return $this->libelle;
+    }
+}

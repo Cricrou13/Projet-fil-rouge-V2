@@ -1,0 +1,45 @@
+.appointment-list {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px 24px;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 16px;
+  }
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: 60px 1fr 1fr 30px;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #F3F4F6;
+    font-size: 14px;
+    color: #111827;
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .appointment-heure {
+    color: #4F46E5;
+    font-weight: 600;
+  }
+
+  .appointment-statut {
+    text-align: right;
+    font-weight: 700;
+
+    &.ok { color: #16A34A; }
+    &.non { color: #EF4444; }
+  }
+}

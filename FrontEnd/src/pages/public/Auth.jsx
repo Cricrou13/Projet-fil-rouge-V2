@@ -1,0 +1,248 @@
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
+import { inscriptionV2 } from '../../config/api';
+import { METIERS_SELECT } from '../../data/metiers';
+import './Auth.scss';
+
+export default function Auth() {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // L'onglet est DERIVE de l'URL et non stocké : `/connexion` et `/inscription`
+  // montent le même composant, donc React ne le remonte pas en passant de l'un à
+  // l'autre — un `useState('login')` ne se relancerait jamais et `/inscription`
+  // afficherait le formulaire de connexion sous un titre « Connexion ».
+  const activeTab = pathname === '/inscription' ? 'register' : 'login';
+
+  // États pour le formulaire de connexion
+  const [loginData, setLoginData] = useState({ email: '', password: '' });
+  
+  // États pour le formulaire d'inscription
+  const [registerData, setRegisterData] = useState({
+    nom: '',
+    prenom: '',
+    email: '',
+    password: '',
+    telephone: '',
+    role: 'client',
+    metier: '',
+    adresse_facturation: '',
+    code_postal: '',
+    ville: '',
+  });
+
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  // Gestion des changements pour la connexion
+  const handleLoginChange = (e) => {
+    setLoginData({ ...loginData, [e.target.name]: e.target.value });
+  };
+
+  // Gestion des changements pour l'inscription
+  const handleRegisterChange = (e) => {
+    setRegisterData({ ...registerData, [e.target.name]: e.target.value });
+  };
+
+  // Soumission de la connexion (UNIQUE DECLARATION)
+  const handleLoginSubmit = async (e) => {
+    e.preventDefault();
+    setMessage('');
+    setError('');
+
+    try {
+      const connecte = await login(loginData.email, loginData.password);
+      setMessage('Connexion réussie ! Redirection en cours...');
+
+      // Le role vient de la reponse du serveur, plus du formulaire : c'est la
+      // session qui dit qui est en face, pas ce que le navigateur a clique.
+      const destination = connecte.role === 'artisan' ? '/pro/tableau-de-bord' : '/';
+
+      setTimeout(() => navigate(destination), 1000);
+    } catch (err) {
+      setError(err.message || 'Erreur de communication avec l’API.');
+    }
+  };
+
+  // Soumission de l'inscription
+  const handleRegisterSubmit = async (e) => {
+    e.preventDefault();
+    setMessage('');
+    setError('');
+
+    try {
+      await inscriptionV2({ ...registerData });
+      setMessage('Inscription réussie ! Vous pouvez vous connecter.');
+
+      // Pas de login automatique ici : le serveur ne cree pas de session (la route
+      // est declaree `session => false`), donc le compte est ouvert par
+      // `connexion` comme n'importe lequel, avec le meme role serveur a la cle.
+      setTimeout(() => {
+        navigate('/connexion');
+        setMessage('');
+      }, 1500);
+    } catch (err) {
+      setError(err.message || "Erreur lors de l'inscription.");
+    }
+  };
+
+  return (
+    // <div> et non <main> : PublicLayout fournit déjà le <main> de la page.
+    // ProLogin garde son <main> à lui, lui est monté hors de tout layout.
+    <div className="auth-page">
+      <div className="auth-card">
+        {/* En-tête avec les onglets */}
+        <div className="auth-tabs">
+          <button
+            type="button"
+            className={`tab-btn ${activeTab === 'login' ? 'active' : ''}`}
+            onClick={() => { navigate('/connexion'); setMessage(''); setError(''); }}
+          >
+            Connexion
+          </button>
+          <button
+            type="button"
+            className={`tab-btn ${activeTab === 'register' ? 'active' : ''}`}
+            onClick={() => { navigate('/inscription'); setMessage(''); setError(''); }}
+          >
+            Inscription
+          </button>
+        </div>
+
+        <div className="auth-content">
+          <h1>InfinTime - <span>{activeTab === 'login' ? 'Connexion' : 'Inscription'}</span></h1>
+
+          {message && <div className="alert-message success">{message}</div>}
+          {error && <div className="alert-message error">{error}</div>}
+
+          {/* Formulaire de Connexion */}
+          {activeTab === 'login' && (
+            <form onSubmit={handleLoginSubmit} className="auth-form">
+              <input
+                type="email"
+                name="email"
+                aria-label="Adresse email"
+                placeholder="Adresse email"
+                value={loginData.email}
+                onChange={handleLoginChange}
+                required
+              />
+              <input
+                type="password"
+                name="password"
+                aria-label="Mot de passe"
+                placeholder="Mot de passe"
+                value={loginData.password}
+                onChange={handleLoginChange}
+                required
+              />
+              <button type="submit" className="btn-submit">Se connecter</button>
+            </form>
+          )}
+
+          {/* Formulaire d'Inscription */}
+          {activeTab === 'register' && (
+            <form onSubmit={handleRegisterSubmit} className="auth-form">
+              <input
+                type="text"
+                name="nom"
+                aria-label="Nom"
+                placeholder="Nom"
+                value={registerData.nom}
+                onChange={handleRegisterChange}
+                required
+              />
+              <input
+                type="text"
+                name="prenom"
+                aria-label="Prénom"
+                placeholder="Prénom"
+                value={registerData.prenom}
+                onChange={handleRegisterChange}
+                required
+              />
+              <input
+                type="email"
+                name="email"
+                aria-label="Email"
+                placeholder="Email"
+                value={registerData.email}
+                onChange={handleRegisterChange}
+                required
+              />
+              <input
+                type="password"
+                name="password"
+                aria-label="Mot de passe"
+                placeholder="Mot de passe"
+                value={registerData.password}
+                onChange={handleRegisterChange}
+                required
+              />
+              <input
+                type="tel"
+                name="telephone"
+                aria-label="Téléphone"
+                placeholder="Téléphone"
+                value={registerData.telephone}
+                onChange={handleRegisterChange}
+              />
+              <select
+                name="role"
+                aria-label="Rôle"
+                value={registerData.role}
+                onChange={handleRegisterChange}
+              >
+                <option value="client">Client</option>
+                <option value="artisan">Artisan</option>
+              </select>
+              {registerData.role === 'artisan' && (
+                <select
+                  name="metier"
+                  aria-label="Métier"
+                  value={registerData.metier}
+                  onChange={handleRegisterChange}
+                  required
+                >
+                  <option value="" disabled>Votre métier</option>
+                  {METIERS_SELECT.map((metier) => (
+                    <option key={metier.value} value={metier.value}>
+                      {metier.label}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <input
+                type="text"
+                name="adresse_facturation"
+                aria-label="Adresse"
+                placeholder="Adresse"
+                value={registerData.adresse_facturation}
+                onChange={handleRegisterChange}
+              />
+              <input
+                type="text"
+                name="code_postal"
+                aria-label="Code postal"
+                placeholder="Code postal"
+                value={registerData.code_postal}
+                onChange={handleRegisterChange}
+              />
+              <input
+                type="text"
+                name="ville"
+                aria-label="Ville"
+                placeholder="Ville"
+                value={registerData.ville}
+                onChange={handleRegisterChange}
+              />
+              <button type="submit" className="btn-submit">S'inscrire</button>
+            </form>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

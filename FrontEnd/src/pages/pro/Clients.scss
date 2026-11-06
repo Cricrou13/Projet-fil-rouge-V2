@@ -1,0 +1,99 @@
+// Comme le tableau de bord et les prestations : ni fond ni gouttière ici, ils
+// appartiennent à <main> (ProLayout.scss). Ajouter un padding latéral ou un
+// max-width sur cette page recréerait le décalage déjà corrigé ailleurs.
+.clientele-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.clientele-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #1E293B;
+    margin: 0 0 0.25rem;
+  }
+  p {
+    font-size: 0.9rem;
+    color: #64748B;
+    margin: 0;
+  }
+}
+
+.clientele-table-container {
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  overflow-x: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.clientele-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.9rem;
+  th {
+    padding: 14px 18px;
+    background: #F8FAFC;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border-bottom: 1px solid #E2E8F0;
+    white-space: nowrap;
+  }
+  td {
+    padding: 14px 18px;
+    border-bottom: 1px solid #F1F5F9;
+    color: #334155;
+    vertical-align: middle;
+  }
+  tr:last-child td {
+    border-bottom: none;
+  }
+  .clientele-nom {
+    font-weight: 700;
+    color: #1E293B;
+  }
+}
+
+.clientele-vide {
+  margin: 0;
+  padding: 3rem 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #64748B;
+  font-style: italic;
+}
+
+.clientele-bandeau {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #EFF6FF;
+  color: #1E40AF;
+  font-size: 0.85rem;
+  svg {
+    flex-shrink: 0;
+  }
+  &.is-error {
+    background: #FEF2F2;
+    color: #B91C1C;
+  }
+}
+
+.clientele-mention {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #64748B;
+}

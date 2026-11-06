@@ -1,0 +1,418 @@
+@use "../../styles/variables" as *;
+.my-appointments-page {
+  min-height: calc(100vh - 80px);
+  background-color: var(--color-bg, #FAFAFA);
+  padding: 2.5rem 1rem;
+}
+.appointments-container {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+/* EN-TÊTE */
+.appointments-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  .header-text {
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--color-text, #171717);
+      margin-bottom: 0.25rem;
+    }
+    p {
+      font-size: 0.95rem;
+      color: var(--color-text-secondary, #475569);
+    }
+  }
+  .btn-new-rdv {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: var(--color-primary, #4338CA);
+    color: white;
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 10px;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.1s ease;
+    &:hover {
+      background: var(--color-primary-hover, #3730A3);
+      transform: translateY(-1px);
+    }
+  }
+}
+/* NOTIFICATION */
+.action-notification {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #DC2626;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+/* BARRE D'ONGLETS */
+.appointments-tabs {
+  display: flex;
+  gap: 0.75rem;
+  border-bottom: 1px solid var(--color-border, #E5E5E5);
+  padding-bottom: 0.5rem;
+  .tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text-secondary, #475569);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    .count-badge {
+      background: #F1F5F9;
+      color: #64748B;
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+    }
+    &:hover {
+      color: var(--color-text, #171717);
+    }
+    &.active {
+      color: var(--color-primary, #4338CA);
+      border-bottom-color: var(--color-primary, #4338CA);
+      .count-badge {
+        background: var(--color-button-bg, #EEF2FF);
+        color: var(--color-primary, #4338CA);
+      }
+    }
+  }
+}
+/* LISTE DES RENDEZ-VOUS */
+.appointments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+/* CARTE RENDEZ-VOUS */
+.appointment-card {
+  background: white;
+  border: 1px solid var(--color-border, #E5E5E5);
+  border-radius: 14px;
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: 100px 1fr 200px;
+  gap: 1.5rem;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  &:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  }
+  &.is-cancelled {
+    opacity: 0.6;
+    background: #FAFAFA;
+  }
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  /* 1. BADGE DATE */
+  .card-date-badge {
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    .date-day {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--color-text, #171717);
+      line-height: 1;
+    }
+    .date-month {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #64748B;
+      margin-top: 2px;
+    }
+    .date-time {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--color-primary, #4338CA);
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px dashed #CBD5E1;
+      width: 100%;
+    }
+    @media (max-width: 768px) {
+      flex-direction: row;
+      gap: 8px;
+      .date-time {
+        border-top: none;
+        border-left: 1px dashed #CBD5E1;
+        padding-top: 0;
+        padding-left: 8px;
+        width: auto;
+      }
+    }
+  }
+  /* 2. INFOS CENTRALES */
+  .card-main-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    .pro-heading {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      .pro-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        color: white;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.95rem;
+      }
+      .pro-details {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        h4 {
+          font-size: 1rem;
+          font-weight: 700;
+          color: var(--color-text, #171717);
+        }
+        .metier-tag {
+          font-size: 0.75rem;
+          font-weight: 600;
+          padding: 2px 8px;
+          border-radius: 20px;
+        }
+      }
+    }
+    .service-details {
+      .prestation-name {
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--color-text, #171717);
+        margin-bottom: 0.35rem;
+      }
+      .service-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: var(--color-text-secondary, #475569);
+        .meta-item {
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          &.price-item strong {
+            color: var(--color-text, #171717);
+          }
+        }
+      }
+    }
+    .client-review-box {
+      background: #FFFBEB;
+      border-left: 3px solid #F59E0B;
+      padding: 8px 12px;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      .stars {
+        display: flex;
+        gap: 2px;
+      }
+      p {
+        font-size: 0.8rem;
+        font-style: italic;
+        color: #92400E;
+      }
+    }
+  }
+  /* 3. COLONNE STATUT & ACTIONS */
+  .card-actions-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 1rem;
+    @media (max-width: 768px) {
+      align-items: stretch;
+    }
+    /* BADGES */
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      &.status--confirmed {
+        background: #DCFCE7;
+        color: #15803D;
+      }
+      &.status--pending {
+        background: #FEF3C7;
+        color: #B45309;
+      }
+      &.status--cancelled {
+        background: #FEE2E2;
+        color: #B91C1C;
+      }
+      &.status--past {
+        background: #F1F5F9;
+        color: #64748B;
+      }
+    }
+    /* ACTIONS */
+    .action-buttons-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+      .btn-contact-pro {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: #F8FAFC;
+        border: 1px solid var(--color-border, #E5E5E5);
+        border-radius: 8px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--color-text, #171717);
+        text-decoration: none;
+        transition: background 0.2s ease;
+        &:hover {
+          background: #F1F5F9;
+        }
+      }
+      .btn-cancel-rdv {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: transparent;
+        border: none;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: #94A3B8;
+        cursor: pointer;
+        transition: color 0.2s ease;
+        &:hover {
+          color: #DC2626;
+        }
+      }
+      .btn-rebook {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: var(--color-button-bg, #EEF2FF);
+        color: var(--color-primary, #4338CA);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.2s ease;
+        &:hover {
+          background: #E0E7FF;
+        }
+      }
+      .btn-leave-review {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 7px 12px;
+        background: transparent;
+        border: 1px dashed #CBD5E1;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #64748B;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        &:hover {
+          border-color: #F59E0B;
+          color: #D97706;
+          background: #FFFBEB;
+        }
+      }
+    }
+  }
+}
+/* ÉTAT VIDE */
+.empty-appointments {
+  text-align: center;
+  padding: 3.5rem 1rem;
+  background: white;
+  border-radius: 14px;
+  border: 1px dashed var(--color-border, #E5E5E5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  .empty-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: #F1F5F9;
+    color: #94A3B8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0.5rem;
+  }
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--color-text, #171717);
+  }
+  p {
+    font-size: 0.9rem;
+    color: var(--color-text-secondary, #475569);
+    max-width: 400px;
+  }
+  .btn-browse-pros {
+    margin-top: 0.5rem;
+    padding: 10px 20px;
+    background: var(--color-primary, #4338CA);
+    color: white;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+    &:hover {
+      background: var(--color-primary-hover, #3730A3);
+    }
+  }
+}

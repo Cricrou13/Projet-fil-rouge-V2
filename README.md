@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 INFINTIME
 
 ## Description
@@ -46,3 +47,6 @@ bash
 Statut
 
 Projet en cours de développement dans le cadre d'une formation développeur web (projet fil rouge).
+=======
+# Projet-fil-rouge-V2
+>>>>>>> 6f759e616b1d01d13aee1bdcc8385ba2f10bef73
