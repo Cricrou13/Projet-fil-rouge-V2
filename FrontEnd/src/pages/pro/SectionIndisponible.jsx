@@ -2,10 +2,6 @@ import { Link, useLocation } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 import "./SectionIndisponible.scss";
 
-// Filet de sécurité déclaré en `path="*"` sous /pro. Sans lui, une URL sans route
-// enfant (« /pro/parametres » de la sidebar, ou une adresse tapée à la main) ne
-// vide pas seulement <main> : React Router ne trouve aucun match, donc
-// l'arborescence entière ne rend rien, sidebar et Topbar comprises.
 export default function SectionIndisponible() {
   const { pathname } = useLocation();
 

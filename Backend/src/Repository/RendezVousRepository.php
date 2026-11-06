@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\RendezVous;
+use App\Entity\RendezVousClient;
 
 class RendezVousRepository extends AbstractRepository
 {
@@ -66,6 +67,84 @@ class RendezVousRepository extends AbstractRepository
             static fn (array $row): RendezVous => RendezVous::fromRow($row),
             $stmt->fetchAll()
         );
+    }
+
+    /**
+     * Les rendez-vous du client connecte, du plus recent au plus ancien.
+     *
+     * `duree_min` se lit dans la colonne et non dans `prestations.duree_estimee` :
+     * c'est la duree reellement creee a la reservation, celle que l'agenda affiche.
+     * `est_futur` et `montant_total` sont rendus par MySQL pour la meme raison que la
+     * fenetre de semaine -- l'horloge de PHP n'est pas celle de la base sur ce poste --
+     * et parce qu'une somme de decimaux en PHP pourrait perdre un centime.
+     *
+     * Les prestations viennent d'une seconde requete : les compter dans la premiere
+     * imposerait un GROUP BY sur toute la selection, et les joindre en LEFT rendrait
+     * invisible un rendez-vous sans ligne dans `concerner`.
+     *
+     * @return RendezVousClient[]
+     */
+    public function listePourClient(int $idClient): array
+    {
+        $sql = 'SELECT r.id_rdv, r.date_heure_debut, r.date_heure_fin, r.statut,
+                       TIMESTAMPDIFF(MINUTE, r.date_heure_debut, r.date_heure_fin) AS duree_min,
+                       (r.date_heure_debut > NOW()) AS est_futur,
+                       a.id_artisan, a.nom_etablissement, a.metier,
+                       a.adresse_etablissement, a.code_postal, a.ville, u.telephone,
+                       (SELECT SUM(ce.prix_applique) FROM concerner ce WHERE ce.id_rdv = r.id_rdv) AS montant_total
+                FROM rendez_vous r
+                JOIN artisans a ON a.id_artisan = r.id_artisan
+                JOIN utilisateurs u ON u.Id_utilisateur = a.Id_utilisateur
+                WHERE r.id_client = ?
+                ORDER BY r.date_heure_debut DESC, r.id_rdv DESC';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$idClient]);
+        $lignes = $stmt->fetchAll();
+
+        $prestations = $this->prestationsParRendezVous(array_column($lignes, 'id_rdv'));
+
+        return array_map(
+            static fn (array $row): RendezVousClient => RendezVousClient::fromRow(
+                $row,
+                $prestations[(int) $row['id_rdv']] ?? []
+            ),
+            $lignes
+        );
+    }
+
+    /**
+     * @param list<int> $idRendezVous
+     * @return array<int, list<array{id_prestation: int, libelle: string, prix_applique: string}>>
+     */
+    private function prestationsParRendezVous(array $idRendezVous): array
+    {
+        if ($idRendezVous === []) {
+            return [];
+        }
+
+        // Un joker par identifiant : la liste vient des lignes deja lues, jamais
+        // de la requete, et `array_fill` ne peut donc rien inserer.
+        $sql = 'SELECT ce.id_rdv, p.id_prestation, p.libelle, ce.prix_applique
+                FROM concerner ce
+                JOIN prestations p ON p.id_prestation = ce.id_prestation
+                WHERE ce.id_rdv IN (' . implode(', ', array_fill(0, count($idRendezVous), '?')) . ')
+                ORDER BY ce.id_rdv, p.id_prestation';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($idRendezVous);
+
+        $parRendezVous = [];
+
+        foreach ($stmt->fetchAll() as $ligne) {
+            $parRendezVous[(int) $ligne['id_rdv']][] = [
+                'id_prestation' => (int) $ligne['id_prestation'],
+                'libelle' => (string) $ligne['libelle'],
+                'prix_applique' => (string) $ligne['prix_applique'],
+            ];
+        }
+
+        return $parRendezVous;
     }
 
     /**

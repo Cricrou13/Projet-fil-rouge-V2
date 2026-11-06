@@ -48,18 +48,23 @@
     }
   }
 }
-/* NOTIFICATION */
-.action-notification {
+/* BANDEAU D'ETAT (chargement, session, erreur) */
+.appointments-bandeau {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 12px 16px;
-  background: #FEF2F2;
-  border: 1px solid #FECACA;
-  color: #DC2626;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #475569;
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 500;
+  &.is-error {
+    background: #FEF2F2;
+    border-color: #FECACA;
+    color: #DC2626;
+  }
 }
 /* BARRE D'ONGLETS */
 .appointments-tabs {
@@ -219,6 +224,22 @@
         color: var(--color-text, #171717);
         margin-bottom: 0.35rem;
       }
+      .prestations-liste {
+        list-style: none;
+        margin: 0 0 0.35rem;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        li {
+          display: flex;
+          justify-content: space-between;
+          gap: 1rem;
+          font-size: 0.95rem;
+          font-weight: 700;
+          color: var(--color-text, #171717);
+        }
+      }
       .service-meta {
         display: flex;
         flex-wrap: wrap;
@@ -233,24 +254,6 @@
             color: var(--color-text, #171717);
           }
         }
-      }
-    }
-    .client-review-box {
-      background: #FFFBEB;
-      border-left: 3px solid #F59E0B;
-      padding: 8px 12px;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      .stars {
-        display: flex;
-        gap: 2px;
-      }
-      p {
-        font-size: 0.8rem;
-        font-style: italic;
-        color: #92400E;
       }
     }
   }
@@ -329,6 +332,13 @@
         &:hover {
           color: #DC2626;
         }
+        &:disabled {
+          color: #CBD5E1;
+          cursor: not-allowed;
+          &:hover {
+            color: #CBD5E1;
+          }
+        }
       }
       .btn-rebook {
         display: inline-flex;
@@ -345,26 +355,6 @@
         transition: background 0.2s ease;
         &:hover {
           background: #E0E7FF;
-        }
-      }
-      .btn-leave-review {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        padding: 7px 12px;
-        background: transparent;
-        border: 1px dashed #CBD5E1;
-        border-radius: 8px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        color: #64748B;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        &:hover {
-          border-color: #F59E0B;
-          color: #D97706;
-          background: #FFFBEB;
         }
       }
     }

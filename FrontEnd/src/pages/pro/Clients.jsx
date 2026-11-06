@@ -10,11 +10,13 @@ const ETATS = {
   },
   "aucun-compte": {
     classe: "is-error",
-    titre: "Aucun compte pro identifié. Reconnecte-toi pour charger ta clientèle.",
+    titre:
+      "Aucun compte pro identifié. Reconnecte-toi pour charger ta clientèle.",
   },
   "sans-fiche": {
     classe: "is-error",
-    titre: "Ce compte n'a pas de fiche artisan en base : la clientèle est vide.",
+    titre:
+      "Ce compte n'a pas de fiche artisan en base : la clientèle est vide.",
   },
   erreur: {
     classe: "is-error",
@@ -22,7 +24,8 @@ const ETATS = {
   },
   ok: {
     classe: "",
-    titre: "Clientèle lue en base : une ligne dès qu'un client a un rendez-vous ou un devis chez toi.",
+    titre:
+      "Clientèle lue en base : une ligne dès qu'un client a un rendez-vous ou un devis chez toi.",
   },
 };
 
@@ -56,7 +59,8 @@ export default function Clients() {
   }, []);
 
   const bandeau = ETATS[etat];
-  const estEnErreur = etat === "erreur" || etat === "sans-fiche" || etat === "aucun-compte";
+  const estEnErreur =
+    etat === "erreur" || etat === "sans-fiche" || etat === "aucun-compte";
   const nombreClients = clientele?.length ?? 0;
 
   return (
@@ -92,10 +96,18 @@ export default function Clients() {
             {clientele?.map((client) => (
               <tr key={client.id_client}>
                 <td className="clientele-nom">{client.nom}</td>
-                <td>{[client.code_postal, client.ville].filter(Boolean).join(" ") || "—"}</td>
+                <td>
+                  {[client.code_postal, client.ville]
+                    .filter(Boolean)
+                    .join(" ") || "—"}
+                </td>
                 <td>{client.rendez_vous}</td>
                 <td>{client.devis}</td>
-                <td>{client.dernier_contact ? dateFr(client.dernier_contact) : "—"}</td>
+                <td>
+                  {client.dernier_contact
+                    ? dateFr(client.dernier_contact)
+                    : "—"}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -103,15 +115,15 @@ export default function Clients() {
 
         {etat === "ok" && nombreClients === 0 && (
           <p className="clientele-vide">
-            Aucun client pour l'instant. Une personne apparaît ici dès qu'elle a pris un
-            rendez-vous ou demandé un devis chez toi.
+            Aucun client pour l'instant. Une personne apparaît ici dès qu'elle a
+            pris un rendez-vous ou demandé un devis chez toi.
           </p>
         )}
       </div>
 
       <p className="clientele-mention">
-        Cette lecture ne publie ni l'email ni le téléphone du client, et elle n'écrit
-        rien : la page est en lecture seule.
+        Cette lecture ne publie ni l'email ni le téléphone du client, et elle
+        n'écrit rien : la page est en lecture seule.
       </p>
     </div>
   );
