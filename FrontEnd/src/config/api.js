@@ -94,6 +94,12 @@ async function statutAttente(reponse) {
     return reponse.json();
 }
 
+// Annuaire public : aucun identifiant en entree, aucune session. Un echec ici veut
+// donc dire « le serveur ne repond pas », jamais « vous n'etes pas autorise ».
+export async function getArtisans() {
+    return statutAttente(await requeteV2('artisans'));
+}
+
 // Fiche et prestations de l'artisan connecte. Aucun identifiant en entree : la
 // session du serveur designe la fiche, une adresse ne peut pas en demander une autre.
 export async function getPro() {

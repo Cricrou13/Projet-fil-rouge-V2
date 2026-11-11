@@ -9,18 +9,6 @@ use App\Entity\RendezVousClient;
 
 class RendezVousRepository extends AbstractRepository
 {
-    /**
-     * Fenetre ISO (lundi 00:00 inclusive -> lundi suivant 00:00 exclusive) qui
-     * contient `lundi`, ou la semaine courante quand `lundi` est null.
-     *
-     * Le calcul est fait par MySQL et non par PHP : les colonnes datetime de la
-     * base sont horodatees a l'heure de Paris alors que PHP tourne en UTC sur ce
-     * poste. Deux horloges differentes deplaceraient la limite de semaine d'une
-     * heure, donc un rendez-vous de debut de semaine d'un jour entier.
-     * WEEKDAY() vaut 0 le lundi : soustraire ce nombre de jours ramene au lundi.
-     *
-     * @return array{debut: string, fin: string, aujourdhui: string}
-     */
     public function fenetreSemaine(?string $lundi): array
     {
         $sql = 'SELECT DATE_SUB(s.ref, INTERVAL WEEKDAY(s.ref) DAY) AS debut,
@@ -37,17 +25,6 @@ class RendezVousRepository extends AbstractRepository
         return $fenetre;
     }
 
-    /**
-     * Rendez-vous de l'artisan pour une fenetre donnee.
-     *
-     * Deux jointures sont obligatoires pour nommer le client : `rendez_vous` ne
-     * stocke qu'un `id_client`, et `client` ne contient que l'adresse de
-     * facturation. Ni le telephone ni l'email du client ne sont selects : la
-     * route V2 n'a aucune authentification, ces donnees-la ne peuvent donc pas
-     * etre publiees tant que c'est le cas.
-     *
-     * @return RendezVous[]
-     */
     public function semainePourArtisan(int $idArtisan, string $debut, string $fin): array
     {
         $sql = 'SELECT r.id_rdv, r.date_heure_debut, r.date_heure_fin, r.statut, r.remarque,
@@ -69,21 +46,6 @@ class RendezVousRepository extends AbstractRepository
         );
     }
 
-    /**
-     * Les rendez-vous du client connecte, du plus recent au plus ancien.
-     *
-     * `duree_min` se lit dans la colonne et non dans `prestations.duree_estimee` :
-     * c'est la duree reellement creee a la reservation, celle que l'agenda affiche.
-     * `est_futur` et `montant_total` sont rendus par MySQL pour la meme raison que la
-     * fenetre de semaine -- l'horloge de PHP n'est pas celle de la base sur ce poste --
-     * et parce qu'une somme de decimaux en PHP pourrait perdre un centime.
-     *
-     * Les prestations viennent d'une seconde requete : les compter dans la premiere
-     * imposerait un GROUP BY sur toute la selection, et les joindre en LEFT rendrait
-     * invisible un rendez-vous sans ligne dans `concerner`.
-     *
-     * @return RendezVousClient[]
-     */
     public function listePourClient(int $idClient): array
     {
         $sql = 'SELECT r.id_rdv, r.date_heure_debut, r.date_heure_fin, r.statut,
@@ -123,8 +85,6 @@ class RendezVousRepository extends AbstractRepository
             return [];
         }
 
-        // Un joker par identifiant : la liste vient des lignes deja lues, jamais
-        // de la requete, et `array_fill` ne peut donc rien inserer.
         $sql = 'SELECT ce.id_rdv, p.id_prestation, p.libelle, ce.prix_applique
                 FROM concerner ce
                 JOIN prestations p ON p.id_prestation = ce.id_prestation
@@ -147,17 +107,6 @@ class RendezVousRepository extends AbstractRepository
         return $parRendezVous;
     }
 
-    /**
-     * Heure de fin calculee par MySQL. C'est la meme raison que pour la fenetre de
-     * semaine : les colonnes datetime sont horodatees a l'heure de Paris alors que
-     * PHP tourne en UTC sur ce poste, et une addition faite par PHP traverserait
-     * un fuseau qui n'est pas le bon au moment du changement d'heure.
-     *
-     * DATE_FORMAT n'est pas du gout : sans lui, `DATE_ADD('2027-03-04 09:00', ...)`
-     * herite d'une echelle de six decimales et rend « 09:30:00.000000 », alors que
-     * la colonne et l'agenda disent « 09:30:00 ». Le meme instant ne doit pas
-     * s'ecrire de deux facons differentes dans la meme API.
-     */
     public function finCalculee(string $debut, int $minutes): string
     {
         $stmt = $this->db->prepare(
@@ -178,18 +127,6 @@ class RendezVousRepository extends AbstractRepository
         return ((int) $stmt->fetchColumn()) === 1;
     }
 
-    /**
-     * Le premier rendez-vous qui chevauche le creneau demande. La comparaison est
-     * celle des intervalles ouverts : deux rendez-vous qui se suivent (fin 11:00,
-     * debut 11:00) ne se chevauchent pas.
-     *
-     * `statut <> 'refuse'` : un refus libere le creneau. Les trois valeurs today
-     * en base (confirme, en_attente, termine) sont toutes comptees comme prenantes,
-     * y compris « termine » -- effacer un creneau passe n'est pas le role de cette
-     * requete.
-     *
-     * @return array{debut: string, fin: string}|null
-     */
     public function premierConflit(int $idArtisan, string $debut, string $fin): ?array
     {
         $stmt = $this->db->prepare(
@@ -206,11 +143,6 @@ class RendezVousRepository extends AbstractRepository
         return $row === false ? null : ['debut' => (string) $row['debut'], 'fin' => (string) $row['fin']];
     }
 
-    /**
-     * La demande ne cree qu'une ligne ; les prestations sont liees dans une seconde
-     * ecriture, et c'est l'assembleur qui tient les deux dans une transaction.
-     * `remarque` est NOT NULL sans defaut : le service fournit '', jamais null.
-     */
     public function creer(
         int $idArtisan,
         int $idClient,
@@ -228,12 +160,6 @@ class RendezVousRepository extends AbstractRepository
         return (int) $this->db->lastInsertId();
     }
 
-    /**
-     * `prix_applique` est le tarif tel qu'il est dans `prestations` a l'instant de
-     * la demande : une chaine decimal, pas le resultat d'une addition en PHP. Le
-     * rendez-vous garde ainsi le prix auquel il a ete demande, meme si l'artisan
-     * remonte son tarif le lendemain.
-     */
     public function lierPrestation(int $idRdv, int $idPrestation, string $prixApplique): void
     {
         $stmt = $this->db->prepare(

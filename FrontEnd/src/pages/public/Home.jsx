@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import HeroSearch from "../../components/home/HeroSearch";
@@ -8,49 +8,33 @@ import ProCard from "../../components/home/ProCard";
 import HowItWorks from "../../components/home/HowItWorks";
 import ProCtaBanner from "../../components/home/ProCtaBanner";
 import Testimonials from "../../components/home/Testimonials";
-import { mockPros } from "../../data/mockPros";
-import { formatTarif } from "../../utils/formatTarif";
-import { V2_API_URL } from "../../config/api";
+import { versCarteArtisan } from "../../utils/versCarteArtisan";
+import { getArtisans } from "../../config/api";
 import "./Home.scss";
 
 export default function Home() {
   const [topPros, setTopPros] = useState([]);
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    fetch(`${V2_API_URL}?route=artisans`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const formattedPros = data.map((artisan) => ({
-            id: artisan.id_artisan,
-            name: artisan.nom_etablissement,
-            nom_etablissement: artisan.nom_etablissement,
-            metier: artisan.metier,
-            ville: artisan.ville,
-            initials: artisan.nom_etablissement.slice(0, 2).toUpperCase(),
-            // Aucune table d'avis n'existe en base : null = "on ne sait pas",
-            // et ProCard masque alors le bloc.
-            rating: null,
-            // Tarif reel : MIN() des prestations actives, null = 0 prestation
-            // tarifee, donc « sur devis » et plus un fallback.
-            startingPrice: formatTarif(artisan.tarif_min ?? null),
-          }));
-          setTopPros(formattedPros);
-        } else {
-          console.warn("⚠️ BDD vide ou données non reconnues, utilisation des mocks");
-          setTopPros(mockPros);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.warn("⚠️ API BDD inaccessible, bascule sur les données de secours :", err.message);
-        setTopPros(mockPros);
-        setLoading(false);
-      });
+  const [erreur, setErreur] = useState(null);
+  const [chargement, setChargement] = useState(true);
+
+  const chargerAnnuaire = useCallback(async () => {
+    setChargement(true);
+    setErreur(null);
+    try {
+      const data = await getArtisans();
+      setTopPros(Array.isArray(data) ? data.map(versCarteArtisan) : []);
+    } catch (err) {
+      console.warn("⚠️ Annuaire des artisans inaccessible :", err.message);
+      setTopPros([]);
+      setErreur("Le serveur n'a pas répondu, la liste des artisans n'a pas pu être chargée.");
+    } finally {
+      setChargement(false);
+    }
   }, []);
+
+  useEffect(() => {
+    chargerAnnuaire();
+  }, [chargerAnnuaire]);
   return (
     <div className="home">
       <HeroSearch />
@@ -70,12 +54,19 @@ export default function Home() {
             </Link>
           </div>
           <div className="home-pros-grid">
-            {loading ? (
-              <p>Chargement des artisans...</p>
+            {chargement ? (
+              <p className="home-pros-state">Chargement des artisans…</p>
+            ) : erreur ? (
+              <p className="home-pros-state is-error">
+                <span>{erreur}</span>
+                <button type="button" onClick={chargerAnnuaire}>
+                  Réessayer
+                </button>
+              </p>
             ) : topPros.length > 0 ? (
               topPros.map((pro) => <ProCard key={pro.id} pro={pro} />)
             ) : (
-              <p>Aucun artisan trouvé pour le moment.</p>
+              <p className="home-pros-state">Aucun artisan n'est encore enregistré.</p>
             )}
           </div>
         </div>

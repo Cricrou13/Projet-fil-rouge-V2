@@ -32,8 +32,6 @@ const ETATS = {
   ok: { titre: "", erreur: false },
 };
 
-// Les valeurs que la base sait écrire. Une valeur inconnue s'affiche telle quelle
-// plutôt que de faire disparaître la carte.
 const STATUTS = {
   en_attente: { classe: "status--pending", libelle: "En attente de l'artisan", icone: Clock },
   confirme: { classe: "status--confirmed", libelle: "Confirmé", icone: CheckCircle2 },
@@ -41,8 +39,6 @@ const STATUTS = {
   refuse: { classe: "status--cancelled", libelle: "Refusé", icone: X },
 };
 
-// Le datetime rendu par MySQL est une heure murale : découper la chaîne plutôt que
-// construire un Date évite qu'un poste réglé sur un autre fuseau décale l'affichage.
 const badgeDate = (debut) => {
   const [jour, heure] = debut.split(" ");
   const mois = new Intl.DateTimeFormat("fr-FR", {

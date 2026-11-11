@@ -21,9 +21,7 @@ class AgendaController extends AbstractController
     }
 
     /**
-     * Planning d'une semaine de l'artisan connecte. L'identifiant vient de la
-     * session, jamais de la requete : `lundi` null = semaine courante, calculée
-     * par la base.
+     * Planning d'une semaine de l'artisan connecté.
      */
     public function semaine(?string $lundi): void
     {
@@ -45,9 +43,6 @@ class AgendaController extends AbstractController
                 $payload = [
                     'id_artisan' => $idArtisan,
                     'semaine' => ['debut' => $fenetre['debut'], 'fin' => $fenetre['fin']],
-                    // L'horodatage du jour vient de la meme source que le filtrage :
-                    // si le front calculait « aujourd'hui » dans le fuseau du navigateur,
-                    // il surlignerait une colonne differente de celle renvoyee par la base.
                     'aujourdhui' => $fenetre['aujourdhui'],
                     'rendez_vous' => array_map(
                         static fn (RendezVous $rdv): array => $rdv->toArray(),

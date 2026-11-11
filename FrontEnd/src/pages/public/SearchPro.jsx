@@ -1,10 +1,9 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, MapPin, SlidersHorizontal, RotateCcw, Frown } from "lucide-react";
+import { Search, MapPin, SlidersHorizontal, RotateCcw, Frown, AlertCircle } from "lucide-react";
 import ProCard from "../../components/home/ProCard";
-import { mockPros } from "../../data/mockPros";
-import { formatTarif } from "../../utils/formatTarif";
-import { V2_API_URL } from "../../config/api";
+import { versCarteArtisan } from "../../utils/versCarteArtisan";
+import { getArtisans } from "../../config/api";
 import "./SearchPro.scss";
 
 // Fonction utilitaire pour ignorer la casse et les accents
@@ -20,45 +19,28 @@ export default function SearchPro() {
   const villeParam = searchParams.get("ville") || "";
   const [metierInput, setMetierInput] = useState(metierParam);
   const [villeInput, setVilleInput] = useState(villeParam);
-  // 1. Nouvel état pour les artisans venant de la BDD
   const [pros, setPros] = useState([]);
-  const [loading, setLoading] = useState(true);
-  // 2. Appel API vers la base de données MySQL
-  useEffect(() => {
-    fetch(`${V2_API_URL}?route=artisans`)
-      .then((res) => {
-        if (!res.ok) throw new Error(`Erreur HTTP : ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const formattedPros = data.map((artisan) => ({
-            id: artisan.id_artisan,
-            name: artisan.nom_etablissement,
-            nom_etablissement: artisan.nom_etablissement,
-            metier: artisan.metier,
-            ville: artisan.ville,
-            codePostal: artisan.code_postal,
-            initials: artisan.nom_etablissement.slice(0, 2).toUpperCase(),
-            rating: null,
-            // Tarif reel : MIN() des prestations actives, null = 0 prestation
-            // tarifee, donc « sur devis » et plus un fallback.
-            startingPrice: formatTarif(artisan.tarif_min ?? null),
-            nextSlot: null,
-            prestations: [],
-          }));
-          setPros(formattedPros);
-        } else {
-          setPros(mockPros); // Secours si la table est vide
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.warn("⚠️ API BDD inaccessible, repli sur les mocks :", err.message);
-        setPros(mockPros); // Secours en cas d'erreur
-        setLoading(false);
-      });
+  const [chargement, setChargement] = useState(true);
+  const [erreur, setErreur] = useState(null);
+
+  const chargerArtisans = useCallback(async () => {
+    setChargement(true);
+    setErreur(null);
+    try {
+      const data = await getArtisans();
+      setPros(Array.isArray(data) ? data.map(versCarteArtisan) : []);
+    } catch (err) {
+      console.warn("⚠️ Annuaire des artisans inaccessible :", err.message);
+      setPros([]);
+      setErreur("Le serveur n'a pas répondu, aucun résultat n'a pu être chargé.");
+    } finally {
+      setChargement(false);
+    }
   }, []);
+
+  useEffect(() => {
+    chargerArtisans();
+  }, [chargerArtisans]);
       useEffect(() => {
         setMetierInput(metierParam);
         setVilleInput(villeParam);
@@ -90,7 +72,7 @@ export default function SearchPro() {
         setSortBy("default");
         setSearchParams({});
       };
-      // 3. Filtrage dynamique sur "pros" au lieu de "mockPros"
+      // 3. Filtrage dynamique sur la liste chargee par la route `artisans`
       const filteredPros = useMemo(() => {
         return pros
           .filter((pro) => {
@@ -353,9 +335,17 @@ export default function SearchPro() {
             <h1 className="sr-only">Rechercher un professionnel ou un artisan</h1> {/* // Titre masqué à titre indicatif pour le lecteur// */}
             <div className="results-header">
               <h2 className="results-count">
-                <strong>{filteredPros.length}</strong> professionnel{filteredPros.length > 1 ? "s" : ""} disponible{filteredPros.length > 1 ? "s" : ""}
-                {villeParam && ` à ${villeParam}`}
-                {metierParam && ` pour "${metierParam}"`}
+                {erreur ? (
+                  "Résultats indisponibles"
+                ) : chargement ? (
+                  "Chargement des artisans…"
+                ) : (
+                  <>
+                    <strong>{filteredPros.length}</strong> professionnel{filteredPros.length > 1 ? "s" : ""} disponible{filteredPros.length > 1 ? "s" : ""}
+                    {villeParam && ` à ${villeParam}`}
+                    {metierParam && ` pour "${metierParam}"`}
+                  </>
+                )}
               </h2>
               <div className="results-sort">
                 <label htmlFor="sort-select">Trier par :</label>
@@ -371,11 +361,33 @@ export default function SearchPro() {
               </div>
             </div>
 
-            {filteredPros.length > 0 ? (
+            {erreur ? (
+              <div className="empty-results is-error">
+                <AlertCircle size={44} className="empty-icon" />
+                <h3>Résultats indisponibles</h3>
+                <p>{erreur}</p>
+                <button type="button" className="btn-reset-search" onClick={chargerArtisans}>
+                  Réessayer
+                </button>
+              </div>
+            ) : chargement ? (
+              <div className="empty-results">
+                <h3>Chargement des artisans…</h3>
+              </div>
+            ) : filteredPros.length > 0 ? (
               <div className="results-grid">
                 {filteredPros.map((pro) => (
                   <ProCard key={pro.id} pro={pro} />
                 ))}
+              </div>
+            ) : pros.length === 0 ? (
+              <div className="empty-results">
+                <Frown size={44} className="empty-icon" />
+                <h3>Aucun professionnel enregistré</h3>
+                <p>
+                  La liste des artisans est vide : aucune recherche ne peut aboutir tant qu'aucun
+                  compte artisan n'a été créé.
+                </p>
               </div>
             ) : (
               <div className="empty-results">

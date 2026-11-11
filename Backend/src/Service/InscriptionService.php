@@ -14,17 +14,6 @@ use PDOException;
 use RuntimeException;
 use Throwable;
 
-/**
- * Creation d'un compte.
- *
- * Le service existe parce qu'une inscription n'est pas une ecriture mais deux,
- * dans deux tables differentes : `utilisateurs` puis `artisans` OU `client`. Si la
- * seconde echoue, la premiere ne doit pas rester en base : sans ce bloc, le compte
- * reste sans fiche, et comme `artisans.Id_utilisateur` est UNIQUE, un rejet
- * posterieur rendrait ce compte impossible a reparer par un second essai. Un controller qui ouvrirait la
- * transaction ne serait plus un controller, et un repository qui l'ouvrirait ne
- * pourrait plus etre compose avec un autre.
- */
 final class InscriptionService
 {
     // Miroir serveur des 10 cles de FrontEnd/src/data/metiers.js (hors `default`,
@@ -42,14 +31,8 @@ final class InscriptionService
         'maconnerie',
     ];
 
-    // L'ancien register.php ecrivait le role recu tel quel : 'pro', 'Admin' ou
-    // n'importe quoi d'autre se retrouvait en base, et `role` devenait une valeur
-    // sur laquelle personne ne pouvait s'appuyer. Deux valeurs, et rien d'autre.
     private const ROLES = ['client', 'artisan'];
 
-    // 72 octets : bcrypt tronque la saisie au-dela sans rien dire. Deux comptes
-    // distincts partageraient alors le meme hash, ce qui est une ouverture, pas
-    // une anecdote. La limite est donc mesuree en octets, pas en caracteres.
     private const MOT_DE_PASSE_MAX = 72;
 
     private const MOT_DE_PASSE_MIN = 8;
@@ -62,10 +45,6 @@ final class InscriptionService
     ) {
     }
 
-    /**
-     * @param array<string, mixed> $corps le JSON recu, tel quel
-     * @throws InscriptionException uniquement des messages ecrits pour l'interface
-     */
     public function enregistrer(array $corps): Utilisateur
     {
         $nom = $this->champ($corps, 'nom', 'Le nom', 50, true);
@@ -92,14 +71,8 @@ final class InscriptionService
             $adresseEtablissement = $adresseFacturation;
         }
 
-        // Le formulaire d'inscription ne demande pas de SIRET. L'ancien code
-        // inscrivait '00000000000000' : un numero qui a l'air vrai, affiche sur la
-        // fiche publique, et impossible a distinguer d'un vrai a l'oeil. Une chaine
-        // vide dit honestement « non renseigné ».
         $siret = $this->champ($corps, 'siret', 'Le SIRET', 50, false);
 
-        // Tout ce qui peut echouer sans toucher la base est fini a cette ligne :
-        // la transaction ne s'ouvre jamais pour un formulaire invalide.
         $hash = password_hash($motDePasse, PASSWORD_BCRYPT, ['cost' => 12]);
 
         $this->db->beginTransaction();
@@ -140,9 +113,7 @@ final class InscriptionService
 
             $this->db->commit();
         } catch (Throwable $e) {
-            // Le rollback est ici et pas ailleurs : si commit() echoue, la
-            // transaction est encore ouverte et les deux lignes resteraient
-            // suspendues jusqu'a la fermeture de la connexion.
+          
             if ($this->db->inTransaction()) {
                 $this->db->rollBack();
             }
@@ -157,8 +128,7 @@ final class InscriptionService
         $utilisateur = $this->utilisateurs->parId($idUtilisateur);
 
         if ($utilisateur === null) {
-            // Commit reussi puis ligne introuvable : ne peut vouloir dire qu'une
-            // chose, la table a ete touchee hors de nous. On ne ment pas au client.
+         
             throw new RuntimeException('Compte créé mais illisible : ' . $idUtilisateur);
         }
 
@@ -180,14 +150,6 @@ final class InscriptionService
         return strtolower(trim((string) end($segments), '`')) === 'email';
     }
 
-    /**
-     * Champs texte : trim, presence, puis longueur. La longueur n'est pas du
-     * decor -- les colonnes ont une taille, et MySQL en mode strict repondrait
-     * 1406, donc un 500 pour un champ trop long. `mb_strlen` parce qu'une colonne
-     * varchar(50) compte des caracteres, pas des octets.
-     *
-     * @param array<string, mixed> $corps
-     */
     private function champ(array $corps, string $cle, string $libelle, int $max, bool $obligatoire): string
     {
         $valeur = trim((string) ($corps[$cle] ?? ''));
@@ -228,9 +190,7 @@ final class InscriptionService
     /** @param array<string, mixed> $corps */
     private function motDePasse(array $corps): string
     {
-        // `mot_de_passe` : le meme vocabulaire que la route de connexion. C'est au
-        // front de traduire le `password` de son formulaire, sinon le serveur
-        // accepterait deux noms pour la meme chose et il faudrait les deux partout.
+    
         $valeur = (string) ($corps['mot_de_passe'] ?? '');
 
         if ($valeur === '') {

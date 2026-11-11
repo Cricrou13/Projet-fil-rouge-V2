@@ -13,20 +13,6 @@ use DateTimeImmutable;
 use PDO;
 use Throwable;
 
-/**
- * Prise de rendez-vous cote client. Le client envoie `id_artisan` et une liste de
- * prestations : c'est la premiere route du site ou un identifiant sort de la
- * requete, et ce n'est pas une faille parce qu'il ne designe pas QUI reserve --
- * l'appelant vient de la session, comme partout ailleurs.
- *
- * Le rendez-vous ne nait pas « confirme » mais « en_attente » : l'artisan garde la
- * main sur son agenda. C'est aussi la seule valeur possible tant qu'aucun creneau
- * n'est publie -- la table `disponibilites` est vide et lue par personne.
- *
- * Une seule transaction, la plus courte possible : les gardes (client, artisan,
- * prestations, date, chevauchement) sont toutes FRANCHIES avant le BEGIN. Elle
- * couvre `rendez_vous` + les lignes `concerner`, et rien d'autre.
- */
 final class RendezVousService
 {
     private const STATUT_DEMANDE = 'en_attente';
@@ -147,11 +133,6 @@ final class RendezVousService
         return $id;
     }
 
-    /**
-     * Date ET heure verifiees par un aller-retour identique, le meme garde que la
-     * route de l'agenda : createFromFormat tolere les debordements, donc
-     * « 2026-02-30 » deviendrait un rendez-vous en mars sans que personne le voie.
-     */
     private function creneauDebut(mixed $date, mixed $heure): string
     {
         if (!is_string($date) || !is_string($heure)) {

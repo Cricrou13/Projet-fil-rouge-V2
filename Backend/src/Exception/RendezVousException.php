@@ -6,11 +6,6 @@ namespace App\Exception;
 
 use DateTimeImmutable;
 
-/**
- * Erreurs de la demande de rendez-vous. Le client envoie un `id_artisan` : c'est
- * la premiere route ou un identifiant de la requete est legitime, parce qu'il ne
- * designe pas QUI appelle (toujours la session) mais OU l'on va.
- */
 final class RendezVousException extends EcritureException
 {
     public static function sansEspaceClient(): self
@@ -44,11 +39,6 @@ final class RendezVousException extends EcritureException
         );
     }
 
-    /**
-     * Les deux valeurs sortent d'une colonne DATETIME deja remplie par MySQL : la
-     * relecture est naive, sans fuseau, pour rendre l'heure affichee en base (Paris)
-     * et jamais une conversion PHP (UTC sur ce poste).
-     */
     private static function horairesLisibles(string $debut, string $fin): string
     {
         $debutDate = DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $debut);

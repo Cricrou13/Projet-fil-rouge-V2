@@ -21,12 +21,9 @@ export default function ProLogin() {
     try {
       await login(formData.email, formData.password);
 
-      // Pas de test de role ici : ProLayout garde la page tant que la session
-      // ne designe pas une fiche artisan, sur la meme reponse serveur que les
-      // autres pages.
       navigate('/pro/tableau-de-bord');
     } catch (err) {
-      // Le serveur ne dit qu'une chose a la fois : 'Identifiants incorrects'.
+   
       setError(err.message || 'Connexion impossible.');
     }
   };

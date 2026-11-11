@@ -38,10 +38,6 @@ final class RendezVousController extends AbstractController
         $this->jsonResponse(['rendez_vous' => $rendezVous], 201);
     }
 
-    /**
-     * Les rendez-vous du compte connecte. La seule entree est la session : accepter
-     * un `id_client` dans la requete ouvrirait la liste des rendez-vous d'un autre.
-     */
     public function mesRendezVous(): void
     {
         try {

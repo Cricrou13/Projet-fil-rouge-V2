@@ -17,11 +17,6 @@ class ClientController extends AbstractController
     ) {
     }
 
-    /**
-     * La clientele de l'artisan connecte. Comme pour l'agenda et les prestations,
-     * l'identifiant de la fiche sort de la session et jamais de la requete : il n'y
-     * a aucun parametre a falsifier pour lire les clients d'un concurrent.
-     */
     public function clientele(): void
     {
         try {

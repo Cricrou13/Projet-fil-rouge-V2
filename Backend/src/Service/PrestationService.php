@@ -9,19 +9,6 @@ use App\Exception\PrestationException;
 use App\Repository\ArtisanRepository;
 use App\Repository\PrestationRepository;
 
-/**
- * Regles d'ecriture du catalogue artisan. Toute la validation tombe avant la
- * premiere requete d'ecriture : une saisie fausse ne doit jamais laisser une ligne
- * a moitie creee, et ce n'est pas MySQL qui doit nous apprendre qu'un tarif vaut
- * -12 ou qu'une duree fait 300 heures.
- *
- * Pas de transaction, donc pas de PDO ici : chaque route ecrit une seule ligne.
- * L'inscription en ouvrait une parce qu'elle en ecrivait trois.
- *
- * L'identite n'entre jamais par le corps de la requete : `idUtilisateur` vient du
- * controleur, lui-meme lu dans la session. Un `id_artisan` passe dans le JSON
- * ouvrirait purement et simplement le catalogue du voisin.
- */
 final class PrestationService
 {
     private const LIBELLE_MAX = 100;
@@ -78,11 +65,6 @@ final class PrestationService
         $this->prestations->supprimer($idPrestation, $idArtisan);
     }
 
-    /**
-     * La fiche artisan existe-t-elle derriere ce compte ? Un client connecte qui
-     * appellerait la route n'en a pas : c'est un 404, pas un 500, et certes pas une
-     * insertion sur une cle etrangere inexistante.
-     */
     private function idArtisan(int $idUtilisateur): int
     {
         $idArtisan = $this->artisans->idArtisanParIdUtilisateur($idUtilisateur);
@@ -94,11 +76,6 @@ final class PrestationService
         return $idArtisan;
     }
 
-    /**
-     * @return Prestation la ligne sert a la fois de garde d'existence et de garde de
-     * propriete : le repository filtre sur id_artisan, donc la prestation d'un
-     * concurrent renvoie null et tombe sur le meme 404 qu'un identifiant inexistant.
-     */
     private function verifierPropriete(int $idPrestation, int $idArtisan): Prestation
     {
         $prestation = $this->prestations->trouver($idPrestation, $idArtisan);
@@ -159,11 +136,6 @@ final class PrestationService
         return $description;
     }
 
-    /**
-     * Le tarif arrive en texte et repart en texte : `decimal(15,2)` est une echelle
-     * fixe, un float JSON ne la represente pas (0.1 n'existe pas en binaire) et un
-     * nombre arondi par le serveur serait un prix facture a tort.
-     */
     private function tarif(mixed $valeur): string
     {
         if (!is_string($valeur)) {

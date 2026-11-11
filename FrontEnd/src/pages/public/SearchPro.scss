@@ -309,6 +309,18 @@
       padding: 3.5rem 2rem;
       text-align: center;
 
+      /* Mêmes tokens que .readonly-banner.is-error côté pro : « rien à montrer »
+         et « le serveur n'a pas répondu » ne doivent pas se ressembler. */
+      &.is-error {
+        background: #FEF2F2;
+        border-color: #FECACA;
+
+        .empty-icon,
+        h3 {
+          color: #B91C1C;
+        }
+      }
+
       .empty-icon {
         color: #9CA3AF;
         margin: 0 auto 1rem;
