@@ -39,6 +39,7 @@ class AgendaController extends AbstractController
                     $fenetre['debut'],
                     $fenetre['fin']
                 );
+                $aVenir = $this->rendezVousRepository->aVenirPourArtisan($idArtisan);
 
                 $payload = [
                     'id_artisan' => $idArtisan,
@@ -47,6 +48,10 @@ class AgendaController extends AbstractController
                     'rendez_vous' => array_map(
                         static fn (RendezVous $rdv): array => $rdv->toArray(),
                         $rendezVous
+                    ),
+                    'a_venir' => array_map(
+                        static fn (RendezVous $rdv): array => $rdv->toArray(),
+                        $aVenir
                     ),
                     'devis' => array_map(
                         static fn (Devis $devis): array => $devis->toArray(),

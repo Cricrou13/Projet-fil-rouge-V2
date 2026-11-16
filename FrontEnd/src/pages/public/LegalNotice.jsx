@@ -4,7 +4,6 @@ import {
   Server, 
   Copyright, 
   Scale, 
-  Mail, 
   ArrowLeft,
   ShieldCheck
 } from "lucide-react";

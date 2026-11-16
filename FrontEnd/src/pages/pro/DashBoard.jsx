@@ -12,16 +12,14 @@ import {
   Phone,
   Plus,
   Trash2,
+  X,
 } from "lucide-react";
 import StatCard from "../../components/pro/StatCard";
-import { getAgendaPro } from "../../config/api";
+import { getAgendaPro, proRdvStatut } from "../../config/api";
 import { formatTarif } from "../../utils/formatTarif";
 import { plageHoraires } from "../../utils/dateSemaine";
 import { cleStatut, libelleStatut } from "../../data/statuts";
 import "./DashBoard.scss";
-
-const ECRITURE_INDISPONIBLE =
-  "Aucune route d'écriture n'existe encore : rien ne sera modifié en base.";
 
 const ETATS = {
   chargement: {
@@ -44,20 +42,28 @@ const ETATS = {
   ok: {
     classe: "",
     titre:
-      "Planning lu en base (tables rendez_vous et devis). Les actions d'écriture ne sont pas encore branchées.",
+      "Planning lu en base. Vous pouvez désormais valider ou modifier le statut de vos rendez-vous.",
   },
 };
 
-export default function Dashboard() {
+const formatDateCourt = (dateStr) => {
+  if (!dateStr) return "";
+  const [jour] = dateStr.split(" ");
+  const [annee, mois, j] = jour.split("-");
+  return `${j}/${mois}/${annee}`;
+};
 
+export default function Dashboard() {
   const [agenda, setAgenda] = useState(null);
   const [etat, setEtat] = useState("chargement");
   const [memos, setMemos] = useState([]);
   const [nouveauMemo, setNouveauMemo] = useState("");
   const [notification, setNotification] = useState(null);
+  const [ongletRdv, setOngletRdv] = useState("a_venir");
+  const [actionEnCours, setActionEnCours] = useState(false);
 
-  useEffect(() => {
-    getAgendaPro()
+  const chargerAgenda = () => {
+    return getAgendaPro()
       .then((data) => {
         setAgenda(data);
         setEtat("ok");
@@ -65,21 +71,87 @@ export default function Dashboard() {
       .catch((err) => {
         console.warn("⚠️ Planning pro inaccessible :", err.message);
         setAgenda(null);
-        // 404 = le compte connecté n'a pas de ligne dans `artisans`.
         if (err.message === "404") setEtat("sans-fiche");
         else if (err.message === "401") setEtat("aucun-compte");
         else setEtat("erreur");
       });
+  };
+
+  useEffect(() => {
+    chargerAgenda();
   }, []);
 
-  const { rdvDuJour, rdvAVenir } = useMemo(() => {
-    const tous = agenda?.rendez_vous ?? [];
-    const aujourdhui = agenda?.aujourdhui;
-    return {
-      rdvDuJour: tous.filter((rdv) => rdv.jour === aujourdhui),
-      rdvAVenir: tous.filter((rdv) => rdv.jour > aujourdhui),
-    };
+  const triggerNotif = (msg) => {
+    setNotification(msg);
+    setTimeout(() => setNotification(null), 3500);
+  };
+
+  const handleChangerStatut = async (idRdv, nouveauStatut) => {
+    setActionEnCours(true);
+    try {
+      await proRdvStatut(idRdv, nouveauStatut);
+      triggerNotif(`Rendez-vous mis à jour (${libelleStatut(nouveauStatut) || nouveauStatut}).`);
+      await chargerAgenda();
+    } catch (err) {
+      triggerNotif(err.message || "Erreur lors de la mise à jour du rendez-vous.");
+    } finally {
+      setActionEnCours(false);
+    }
+  };
+
+  const tousRdv = useMemo(() => {
+    // Si a_venir est renvoyé par l'API, on l'utilise pour avoir tous les RDV futurs
+    return agenda?.a_venir ?? agenda?.rendez_vous ?? [];
   }, [agenda]);
+
+  const aujourdhui = agenda?.aujourdhui;
+
+  const { rdvDuJour, rdvFuturs, rdvEnAttente, rdvAnnules } = useMemo(() => {
+    const duJour = [];
+    const futurs = [];
+    const enAttente = [];
+    const annules = [];
+
+    tousRdv.forEach((rdv) => {
+      const isAnnule = rdv.statut === "annule" || rdv.statut === "refuse";
+      if (isAnnule) {
+        annules.push(rdv);
+      } else {
+        if (rdv.statut === "en_attente") {
+          enAttente.push(rdv);
+        }
+        if (rdv.jour === aujourdhui) {
+          duJour.push(rdv);
+        } else if (rdv.jour > aujourdhui) {
+          futurs.push(rdv);
+        }
+      }
+    });
+
+    return {
+      rdvDuJour: duJour,
+      rdvFuturs: futurs,
+      rdvEnAttente: enAttente,
+      rdvAnnules: annules,
+    };
+  }, [tousRdv, aujourdhui]);
+
+  const rdvAffiches = useMemo(() => {
+    if (ongletRdv === "du_jour") return rdvDuJour;
+    if (ongletRdv === "en_attente") return rdvEnAttente;
+    if (ongletRdv === "annules") return rdvAnnules;
+    return rdvFuturs;
+  }, [ongletRdv, rdvDuJour, rdvFuturs, rdvEnAttente, rdvAnnules]);
+
+  const chiffreAffaires = useMemo(() => {
+    let total = 0;
+    tousRdv.forEach((rdv) => {
+      if (rdv.statut === "confirme" || rdv.statut === "termine") {
+        total += Number(rdv.montant_total || 0);
+      }
+    });
+    return total > 0 ? formatTarif(total) : "—";
+  }, [tousRdv]);
 
   const devis = agenda?.devis ?? [];
 
@@ -92,11 +164,6 @@ export default function Dashboard() {
       timeZone: "UTC",
     }).format(new Date(`${agenda.aujourdhui}T00:00:00Z`));
   }, [agenda]);
-
-  const triggerNotif = (msg) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(null), 3500);
-  };
 
   const handleAddNote = (e) => {
     e.preventDefault();
@@ -140,94 +207,199 @@ export default function Dashboard() {
         />
         <StatCard
           title="Prochains rendez-vous"
-          value={`${rdvAVenir.length} RDV`}
-          subtitle="Sur la semaine courante"
+          value={`${rdvFuturs.length} RDV`}
+          subtitle="À venir (toutes semaines)"
           type="neutral"
         />
         <StatCard
-          title="Devis reçus"
-          value={`${devis.length} devis`}
-          subtitle="Aucun statut normalisé en base"
-          type={devis.length > 0 ? "warning" : "info"}
+          title="Demandes en attente"
+          value={`${rdvEnAttente.length} RDV`}
+          subtitle="À valider par vous"
+          type={rdvEnAttente.length > 0 ? "warning" : "info"}
         />
         <StatCard
-          title="Chiffre d'affaires"
-          value="—"
-          subtitle="Aucun tarif stocké sur un rendez-vous"
-          type="neutral"
+          title="CA Confirmé"
+          value={chiffreAffaires}
+          subtitle="Rendez-vous confirmés/effectués"
+          type="positive"
         />
       </div>
 
       {/* 2. DISPOSITION EN 2 COLONNES */}
       <div className="dashboard-main-grid">
         <div className="dashboard-left-col">
-          {/* PLANNING DU JOUR */}
+          {/* GESTION DES RENDEZ-VOUS */}
           <section className="dash-card">
             <div className="dash-card__header">
               <div className="title-wrap">
                 <Calendar size={20} className="icon-blue" />
-                <h3>Planning du jour</h3>
+                <h3>Rendez-vous clients</h3>
               </div>
               <Link to="/pro/planning" className="link-view-all">
-                <span>Voir la semaine</span>
+                <span>Voir le planning complet</span>
                 <ChevronRight size={16} />
               </Link>
             </div>
 
+            {/* ONGLETS DES RENDEZ-VOUS */}
+            <div className="dash-tabs">
+              <button
+                type="button"
+                className={`dash-tab-btn ${ongletRdv === "du_jour" ? "active" : ""}`}
+                onClick={() => setOngletRdv("du_jour")}
+              >
+                <span>Aujourd'hui</span>
+                <span className="count-pill">{rdvDuJour.length}</span>
+              </button>
+              <button
+                type="button"
+                className={`dash-tab-btn ${ongletRdv === "a_venir" ? "active" : ""}`}
+                onClick={() => setOngletRdv("a_venir")}
+              >
+                <span>À venir</span>
+                <span className="count-pill">{rdvFuturs.length}</span>
+              </button>
+              <button
+                type="button"
+                className={`dash-tab-btn ${ongletRdv === "en_attente" ? "active" : ""}`}
+                onClick={() => setOngletRdv("en_attente")}
+              >
+                <span>En attente</span>
+                <span className="count-pill">{rdvEnAttente.length}</span>
+              </button>
+              <button
+                type="button"
+                className={`dash-tab-btn ${ongletRdv === "annules" ? "active" : ""}`}
+                onClick={() => setOngletRdv("annules")}
+              >
+                <span>Annulés</span>
+                <span className="count-pill">{rdvAnnules.length}</span>
+              </button>
+            </div>
+
             <div className="appointment-list-modern">
-              {rdvDuJour.length === 0 ? (
+              {rdvAffiches.length === 0 ? (
                 <p className="empty-quotes">
-                  Aucun rendez-vous enregistré pour aujourd'hui.
+                  {ongletRdv === "du_jour" && "Aucun rendez-vous prévu pour aujourd'hui."}
+                  {ongletRdv === "a_venir" && "Aucun rendez-vous futur planifié pour le moment."}
+                  {ongletRdv === "en_attente" && "Aucune nouvelle demande en attente de confirmation."}
+                  {ongletRdv === "annules" && "Aucun rendez-vous annulé."}
                 </p>
               ) : (
-                rdvDuJour.map((rdv) => (
-                  <div
-                    key={rdv.id_rdv}
-                    className={`appointment-row ${cleStatut(rdv.statut) === "termine" ? "is-finished" : ""}`}
-                  >
-                    <div className="row-time">
-                      <Clock size={15} />
-                      <span>{plageHoraires(rdv.date_heure_debut, rdv.date_heure_fin)}</span>
-                    </div>
-                    <div className="row-info">
-                      <div className="client-line">
-                        <strong>{rdv.nom_client}</strong>
-                        <span className="statut-badge" title={rdv.statut}>
-                          {libelleStatut(rdv.statut)}
-                        </span>
+                rdvAffiches.map((rdv) => {
+                  const prestationLabel =
+                    rdv.prestations && rdv.prestations.length > 0
+                      ? rdv.prestations.map((p) => p.libelle).join(", ")
+                      : rdv.remarque || "Prestation standard";
+
+                  const isFinished = cleStatut(rdv.statut) === "termine";
+                  const isPending = cleStatut(rdv.statut) === "en_attente";
+                  const isConfirmed = cleStatut(rdv.statut) === "confirme";
+                  const isCancelled = cleStatut(rdv.statut) === "annule" || cleStatut(rdv.statut) === "refuse";
+
+                  return (
+                    <div
+                      key={rdv.id_rdv}
+                      className={`appointment-row ${isFinished ? "is-finished" : ""} ${isCancelled ? "is-cancelled" : ""}`}
+                    >
+                      <div className="row-time">
+                        <Clock size={15} />
+                        <div>
+                          <strong>{formatDateCourt(rdv.date_heure_debut)}</strong>
+                          <span>{plageHoraires(rdv.date_heure_debut, rdv.date_heure_fin)}</span>
+                        </div>
                       </div>
-                      <span className="service-name">
-                        {rdv.remarque || "Aucune remarque renseignée."}
-                      </span>
+
+                      <div className="row-info">
+                        <div className="client-line">
+                          <strong>{rdv.nom_client}</strong>
+                          <span className="statut-badge" title={rdv.statut}>
+                            {libelleStatut(rdv.statut)}
+                          </span>
+                        </div>
+                        <span className="service-name">{prestationLabel}</span>
+                      </div>
+
+                      <div className="row-price">
+                        {rdv.montant_total ? formatTarif(rdv.montant_total) : "—"}
+                      </div>
+
+                      <div className="row-actions">
+                        {rdv.telephone ? (
+                          <a
+                            href={`tel:${rdv.telephone.replace(/\s+/g, "")}`}
+                            className="btn-call"
+                            title={`Appeler ${rdv.nom_client} au ${rdv.telephone}`}
+                          >
+                            <Phone size={14} />
+                          </a>
+                        ) : (
+                          <span className="btn-call is-disabled" title="Numéro de téléphone non renseigné">
+                            <Phone size={14} />
+                          </span>
+                        )}
+
+                        {isPending && (
+                          <>
+                            <button
+                              type="button"
+                              className="btn-action-validate"
+                              disabled={actionEnCours}
+                              onClick={() => handleChangerStatut(rdv.id_rdv, "confirme")}
+                              title="Confirmer la demande du client"
+                            >
+                              Valider
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-action-decline"
+                              disabled={actionEnCours}
+                              onClick={() => handleChangerStatut(rdv.id_rdv, "refuse")}
+                              title="Décliner ce rendez-vous"
+                            >
+                              Refuser
+                            </button>
+                          </>
+                        )}
+
+                        {isConfirmed && (
+                          <>
+                            <button
+                              type="button"
+                              className="btn-action-finish"
+                              disabled={actionEnCours}
+                              onClick={() => handleChangerStatut(rdv.id_rdv, "termine")}
+                              title="Marquer comme intervention terminée"
+                            >
+                              Terminer
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-action-decline"
+                              disabled={actionEnCours}
+                              onClick={() => handleChangerStatut(rdv.id_rdv, "annule")}
+                              title="Annuler ce rendez-vous"
+                            >
+                              Annuler
+                            </button>
+                          </>
+                        )}
+
+                        {isFinished && (
+                          <span className="badge-done">
+                            <Check size={14} /> Effectué
+                          </span>
+                        )}
+
+                        {isCancelled && (
+                          <span className="badge-done text-red">
+                            <X size={14} /> {rdv.statut === "refuse" ? "Refusé" : "Annulé"}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="row-price" title="Aucun tarif n'est stocké sur un rendez-vous">
-                      —
-                    </div>
-                    <div className="row-actions">
-                      <span
-                        className="btn-call is-disabled"
-                        title={`Téléphone client non publié : la route V2 n'a pas d'authentification. ${ECRITURE_INDISPONIBLE}`}
-                      >
-                        <Phone size={14} />
-                      </span>
-                      {cleStatut(rdv.statut) === "en_attente" && (
-                        <button type="button" className="btn-action-validate" disabled title={ECRITURE_INDISPONIBLE}>
-                          Valider
-                        </button>
-                      )}
-                      {cleStatut(rdv.statut) === "confirme" && (
-                        <button type="button" className="btn-action-finish" disabled title={ECRITURE_INDISPONIBLE}>
-                          Terminer
-                        </button>
-                      )}
-                      {cleStatut(rdv.statut) === "termine" && (
-                        <span className="badge-done">
-                          <Check size={14} /> Terminé
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
           </section>
@@ -261,20 +433,6 @@ export default function Dashboard() {
                         Montant proposé : <strong>{formatTarif(quote.montant_propose)}</strong>
                       </span>
                     </div>
-                    <div className="quote-actions">
-                      {cleStatut(quote.statut) === "en_attente" ? (
-                        <>
-                          <button type="button" className="btn-accept" disabled title={ECRITURE_INDISPONIBLE}>
-                            Accepter
-                          </button>
-                          <button type="button" className="btn-decline" disabled title={ECRITURE_INDISPONIBLE}>
-                            Décliner
-                          </button>
-                        </>
-                      ) : (
-                        <span className="quote-traite">Aucune action sur ce statut</span>
-                      )}
-                    </div>
                   </div>
                 ))}
               </div>
@@ -300,8 +458,7 @@ export default function Dashboard() {
               </button>
             </form>
             <p className="mention">
-              Aucune table de notes en base : ces mémos restent dans l'onglet et
-              disparaissent au rechargement.
+              Ces mémos restent dans l'onglet et disparaissent au rechargement.
             </p>
             <ul className="notes-list">
               {memos.map((note, idx) => (

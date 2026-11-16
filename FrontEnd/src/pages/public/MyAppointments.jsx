@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertCircle,
@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { getMetierConfig } from "../../data/metiers";
-import { getMesRendezVous } from "../../config/api";
+import { getMesRendezVous, rdvAnnuler } from "../../config/api";
 import { formatDuree } from "../../utils/formatDuree";
 import { formatTarif } from "../../utils/formatTarif";
 import "./MyAppointments.scss";
@@ -36,7 +36,8 @@ const STATUTS = {
   en_attente: { classe: "status--pending", libelle: "En attente de l'artisan", icone: Clock },
   confirme: { classe: "status--confirmed", libelle: "Confirmé", icone: CheckCircle2 },
   termine: { classe: "status--past", libelle: "Effectué", icone: null },
-  refuse: { classe: "status--cancelled", libelle: "Refusé", icone: X },
+  refuse: { classe: "status--cancelled", libelle: "Refusé par l'artisan", icone: X },
+  annule: { classe: "status--cancelled", libelle: "Annulé", icone: X },
 };
 
 const badgeDate = (debut) => {
@@ -57,8 +58,9 @@ export default function MyAppointments() {
   const [onglet, setOnglet] = useState("a_venir");
   const [rendezVous, setRendezVous] = useState(null);
   const [etat, setEtat] = useState("chargement");
+  const [annulationId, setAnnulationId] = useState(null);
 
-  useEffect(() => {
+  const chargerRendezVous = () => {
     getMesRendezVous()
       .then((data) => {
         setRendezVous(data.rendez_vous ?? []);
@@ -71,12 +73,56 @@ export default function MyAppointments() {
         else if (err.message === "404") setEtat("sans-espace-client");
         else setEtat("erreur");
       });
+  };
+
+  useEffect(() => {
+    chargerRendezVous();
   }, []);
+
+  const handleAnnuler = async (idRdv) => {
+    if (!window.confirm("Êtes-vous sûr de vouloir annuler ce rendez-vous ?")) {
+      return;
+    }
+
+    setAnnulationId(idRdv);
+    try {
+      await rdvAnnuler(idRdv);
+      await chargerRendezVous();
+    } catch (err) {
+      alert(err.message || "Erreur lors de l'annulation du rendez-vous.");
+    } finally {
+      setAnnulationId(null);
+    }
+  };
 
   const bandeau = ETATS[etat];
   const liste = rendezVous ?? [];
-  const aVenir = liste.filter((rdv) => rdv.est_futur);
-  const affiches = onglet === "a_venir" ? aVenir : liste.filter((rdv) => !rdv.est_futur);
+
+  // Tri par onglets
+  const { aVenir, passes, annules } = useMemo(() => {
+    const aVenirList = [];
+    const passesList = [];
+    const annulesList = [];
+
+    liste.forEach((rdv) => {
+      const isAnnule = rdv.statut === "annule" || rdv.statut === "refuse";
+      if (isAnnule) {
+        annulesList.push(rdv);
+      } else if (rdv.est_futur) {
+        aVenirList.push(rdv);
+      } else {
+        passesList.push(rdv);
+      }
+    });
+
+    return { aVenir: aVenirList, passes: passesList, annules: annulesList };
+  }, [liste]);
+
+  const affiches = useMemo(() => {
+    if (onglet === "a_venir") return aVenir;
+    if (onglet === "passes") return passes;
+    return annules;
+  }, [onglet, aVenir, passes, annules]);
 
   return (
     <div className="my-appointments-page">
@@ -118,7 +164,16 @@ export default function MyAppointments() {
               >
                 <RotateCcw size={18} />
                 <span>Historique &amp; Passés</span>
-                <span className="count-badge">{liste.length - aVenir.length}</span>
+                <span className="count-badge">{passes.length}</span>
+              </button>
+              <button
+                type="button"
+                className={`tab-btn ${onglet === "annules" ? "active" : ""}`}
+                onClick={() => setOnglet("annules")}
+              >
+                <X size={18} />
+                <span>Annulés</span>
+                <span className="count-badge">{annules.length}</span>
               </button>
             </div>
 
@@ -129,7 +184,9 @@ export default function MyAppointments() {
                     <Calendar size={48} />
                   </div>
                   <h3>
-                    Aucun rendez-vous {onglet === "a_venir" ? "à venir" : "dans l'historique"}
+                    {onglet === "a_venir" && "Aucun rendez-vous à venir"}
+                    {onglet === "passes" && "Aucun rendez-vous dans l'historique"}
+                    {onglet === "annules" && "Aucun rendez-vous annulé"}
                   </h3>
                   <p>Besoin d'un artisan qualifié pour vos travaux ou votre quotidien ?</p>
                   <Link to="/recherche" className="btn-browse-pros">
@@ -148,11 +205,12 @@ export default function MyAppointments() {
                   const IconeStatut = statut.icone;
                   const ville = [rdv.code_postal, rdv.ville].filter(Boolean).join(" ");
                   const adresse = [rdv.adresse_etablissement, ville].filter(Boolean).join(", ");
+                  const isAnnule = rdv.statut === "annule" || rdv.statut === "refuse";
 
                   return (
                     <div
                       key={rdv.id_rdv}
-                      className={`appointment-card ${rdv.statut === "refuse" ? "is-cancelled" : ""}`}
+                      className={`appointment-card ${isAnnule ? "is-cancelled" : ""}`}
                     >
                       <div className="card-date-badge">
                         <span className="date-day">{date.jour}</span>
@@ -180,7 +238,7 @@ export default function MyAppointments() {
                         </div>
 
                         <div className="service-details">
-                          {rdv.prestations.length > 1 ? (
+                          {rdv.prestations && rdv.prestations.length > 1 ? (
                             <ul className="prestations-liste">
                               {rdv.prestations.map((prestation) => (
                                 <li key={prestation.id_prestation}>
@@ -191,7 +249,7 @@ export default function MyAppointments() {
                             </ul>
                           ) : (
                             <h3 className="prestation-name">
-                              {rdv.prestations[0]?.libelle ?? "Prestation non détaillée"}
+                              {rdv.prestations && rdv.prestations[0]?.libelle ? rdv.prestations[0].libelle : "Prestation sur mesure"}
                             </h3>
                           )}
 
@@ -227,19 +285,20 @@ export default function MyAppointments() {
                               <span>{rdv.telephone}</span>
                             </a>
                           )}
-                          {rdv.est_futur && rdv.statut !== "refuse" && (
+                          {!isAnnule && rdv.est_futur && (
                             <button
                               type="button"
                               className="btn-cancel-rdv"
-                              disabled
-                              title="Le serveur ne sait pas encore annuler un rendez-vous."
+                              onClick={() => handleAnnuler(rdv.id_rdv)}
+                              disabled={annulationId === rdv.id_rdv}
+                              title="Annuler ce rendez-vous"
                             >
                               <X size={15} />
-                              <span>Annuler</span>
+                              <span>{annulationId === rdv.id_rdv ? "Annulation…" : "Annuler"}</span>
                             </button>
                           )}
-                          {!rdv.est_futur && (
-                            <Link to="/reservation" className="btn-rebook">
+                          {(isAnnule || !rdv.est_futur) && (
+                            <Link to={`/reservation?pro=${rdv.id_artisan}`} className="btn-rebook">
                               <RotateCcw size={15} />
                               <span>Reprendre RDV</span>
                             </Link>

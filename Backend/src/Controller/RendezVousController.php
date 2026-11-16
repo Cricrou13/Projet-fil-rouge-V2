@@ -64,4 +64,43 @@ final class RendezVousController extends AbstractController
 
         $this->jsonResponse($payload, $status);
     }
+
+    public function annuler(): void
+    {
+        $idUtilisateur = $this->compteConnecte();
+        $corps = $this->corpsJson();
+        $idRdv = filter_var($corps['id_rdv'] ?? null, FILTER_VALIDATE_INT);
+
+        if ($idRdv === false || $idRdv < 1) {
+            $this->jsonResponse(['error' => 'Identifiant rendez-vous invalide'], 400);
+        }
+
+        try {
+            $this->rendezVousService->annulerParClient($idUtilisateur, $idRdv);
+        } catch (RendezVousException $e) {
+            $this->jsonResponse(['error' => $e->getMessage()], $e->statut());
+        }
+
+        $this->jsonResponse(['ok' => true]);
+    }
+
+    public function changerStatut(): void
+    {
+        $idUtilisateur = $this->compteConnecte();
+        $corps = $this->corpsJson();
+        $idRdv = filter_var($corps['id_rdv'] ?? null, FILTER_VALIDATE_INT);
+        $statut = trim((string) ($corps['statut'] ?? ''));
+
+        if ($idRdv === false || $idRdv < 1 || $statut === '') {
+            $this->jsonResponse(['error' => 'Paramètres invalides'], 400);
+        }
+
+        try {
+            $this->rendezVousService->changerStatutParArtisan($idUtilisateur, $idRdv, $statut);
+        } catch (RendezVousException $e) {
+            $this->jsonResponse(['error' => $e->getMessage()], $e->statut());
+        }
+
+        $this->jsonResponse(['ok' => true]);
+    }
 }

@@ -28,7 +28,7 @@ class RendezVousRepository extends AbstractRepository
     public function semainePourArtisan(int $idArtisan, string $debut, string $fin): array
     {
         $sql = 'SELECT r.id_rdv, r.date_heure_debut, r.date_heure_fin, r.statut, r.remarque,
-                       u.prenom, u.nom
+                       u.prenom, u.nom, u.telephone
                 FROM rendez_vous r
                 JOIN client c ON c.id_client = r.id_client
                 JOIN utilisateurs u ON u.Id_utilisateur = c.Id_utilisateur
@@ -39,11 +39,71 @@ class RendezVousRepository extends AbstractRepository
 
         $stmt = $this->db->prepare($sql);
         $stmt->execute([$idArtisan, $debut, $fin]);
+        $lignes = $stmt->fetchAll();
+        $prestations = $this->prestationsParRendezVous(array_column($lignes, 'id_rdv'));
 
         return array_map(
-            static fn (array $row): RendezVous => RendezVous::fromRow($row),
-            $stmt->fetchAll()
+            static fn (array $row): RendezVous => RendezVous::fromRow(
+                $row,
+                $prestations[(int) $row['id_rdv']] ?? []
+            ),
+            $lignes
         );
+    }
+
+    /**
+     * Tous les rendez-vous de l'artisan à partir d'aujourd'hui (sans limite à la semaine courante),
+     * pour que l'artisan voie les réservations prises par les clients quel que soit le créneau choisi.
+     *
+     * @return RendezVous[]
+     */
+    public function aVenirPourArtisan(int $idArtisan): array
+    {
+        $sql = 'SELECT r.id_rdv, r.date_heure_debut, r.date_heure_fin, r.statut, r.remarque,
+                       u.prenom, u.nom, u.telephone
+                FROM rendez_vous r
+                JOIN client c ON c.id_client = r.id_client
+                JOIN utilisateurs u ON u.Id_utilisateur = c.Id_utilisateur
+                WHERE r.id_artisan = ?
+                  AND r.date_heure_debut >= CURDATE()
+                ORDER BY r.date_heure_debut ASC, r.id_rdv ASC';
+
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([$idArtisan]);
+        $lignes = $stmt->fetchAll();
+        $prestations = $this->prestationsParRendezVous(array_column($lignes, 'id_rdv'));
+
+        return array_map(
+            static fn (array $row): RendezVous => RendezVous::fromRow(
+                $row,
+                $prestations[(int) $row['id_rdv']] ?? []
+            ),
+            $lignes
+        );
+    }
+
+    public function trouverPourClient(int $idRdv, int $idClient): ?array
+    {
+        $stmt = $this->db->prepare('SELECT id_rdv, statut, date_heure_debut FROM rendez_vous WHERE id_rdv = ? AND id_client = ?');
+        $stmt->execute([$idRdv, $idClient]);
+        $row = $stmt->fetch();
+
+        return $row === false ? null : $row;
+    }
+
+    public function trouverPourArtisan(int $idRdv, int $idArtisan): ?array
+    {
+        $stmt = $this->db->prepare('SELECT id_rdv, statut, date_heure_debut FROM rendez_vous WHERE id_rdv = ? AND id_artisan = ?');
+        $stmt->execute([$idRdv, $idArtisan]);
+        $row = $stmt->fetch();
+
+        return $row === false ? null : $row;
+    }
+
+    public function mettreAJourStatut(int $idRdv, string $statut): void
+    {
+        $stmt = $this->db->prepare('UPDATE rendez_vous SET statut = ? WHERE id_rdv = ?');
+        $stmt->execute([$statut, $idRdv]);
     }
 
     public function listePourClient(int $idClient): array
@@ -79,7 +139,7 @@ class RendezVousRepository extends AbstractRepository
      * @param list<int> $idRendezVous
      * @return array<int, list<array{id_prestation: int, libelle: string, prix_applique: string}>>
      */
-    private function prestationsParRendezVous(array $idRendezVous): array
+    public function prestationsParRendezVous(array $idRendezVous): array
     {
         if ($idRendezVous === []) {
             return [];
@@ -132,7 +192,7 @@ class RendezVousRepository extends AbstractRepository
         $stmt = $this->db->prepare(
             "SELECT date_heure_debut AS debut, date_heure_fin AS fin
              FROM rendez_vous
-             WHERE id_artisan = ? AND statut <> 'refuse'
+             WHERE id_artisan = ? AND statut NOT IN ('refuse', 'annule')
                AND date_heure_debut < ? AND date_heure_fin > ?
              ORDER BY date_heure_debut ASC
              LIMIT 1"

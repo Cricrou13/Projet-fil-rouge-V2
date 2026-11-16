@@ -18,6 +18,16 @@ final class RendezVousException extends EcritureException
         return new self('Artisan ' . $idArtisan . ' introuvable.', 404);
     }
 
+    public static function rdvIntrouvable(): self
+    {
+        return new self('Rendez-vous introuvable ou non autorisé.', 404);
+    }
+
+    public static function dejaAnnule(): self
+    {
+        return new self('Ce rendez-vous est déjà annulé.', 400);
+    }
+
     /** @param string $liste libellés deja resolves, pour que l'artisan reconnaisse sa propre prestation */
     public static function prestationNonReservable(string $liste): self
     {

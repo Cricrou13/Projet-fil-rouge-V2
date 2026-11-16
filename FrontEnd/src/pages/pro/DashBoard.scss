@@ -488,3 +488,69 @@
   cursor: not-allowed;
   transform: none;
 }
+
+
+/* AJOUTS POUR GESTION DES RENDEZ-VOUS ET ONGLETS DU DASHBOARD */
+.dash-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 0.75rem;
+
+  .dash-tab-btn {
+    background: transparent;
+    border: none;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748B;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    &:hover {
+      background: #F1F5F9;
+      color: #1E293B;
+    }
+
+    &.active {
+      background: #EEF2FF;
+      color: var(--color-primary, #4338CA);
+      font-weight: 700;
+    }
+
+    .count-pill {
+      background: #E2E8F0;
+      color: #475569;
+      font-size: 0.75rem;
+      padding: 1px 7px;
+      border-radius: 12px;
+    }
+
+    &.active .count-pill {
+      background: var(--color-primary, #4338CA);
+      color: white;
+    }
+  }
+}
+
+.btn-action-decline {
+  padding: 6px 12px;
+  background: #FEE2E2;
+  color: #B91C1C;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: #FECACA;
+  }
+}

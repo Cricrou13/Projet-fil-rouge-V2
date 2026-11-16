@@ -30,12 +30,6 @@ require __DIR__ . '/../vendor/autoload.php';
  * qu'en cas de succes que Session::attacher() en ouvre une. `inscription` est a
  * false pour la meme raison : creer un compte ne connecte personne, le visiteur
  * passe ensuite par `connexion` comme n'importe qui d'autre.
- *
- * Les en-tetes Access-Control-* de l'ancienne version sont partis avec elle :
- * un `Allow-Origin: *` est par construction incompatible avec un cookie de
- * session, et le front n'en a plus besoin maintenant qu'il passe par le proxy
- * Vite (meme origine). Servir le front ailleurs qu'en same-origin exigerait une
- * liste blanche d'origines explicite, pas un joker.
  */
 const ROUTES = [
     'artisans' => ['verbe' => 'GET', 'session' => false],
@@ -47,19 +41,14 @@ const ROUTES = [
     'inscription' => ['verbe' => 'POST', 'session' => false],
     'connexion' => ['verbe' => 'POST', 'session' => false],
     'deconnexion' => ['verbe' => 'POST', 'session' => true],
-    // Les trois ecritures du catalogue. Le verbe porte le sens de l'action : creer
-    // est POST, changer un champ existant est PATCH, retirer la ligne est DELETE.
-    // Une seule route par verbe, sinon la table `ROUTES` ne pourrait plus annoncer
-    // qu'un seul `Allow` a la requete refusee.
+    // Les trois ecritures du catalogue.
     'pro-prestation-creer' => ['verbe' => 'POST', 'session' => true],
     'pro-prestation-visibilite' => ['verbe' => 'PATCH', 'session' => true],
     'pro-prestation-supprimer' => ['verbe' => 'DELETE', 'session' => true],
-    // Le client reserving : a sa fiche et a ses prestations, jamais a son
-    // identite. Session obligatoire parce que `rendez_vous.id_client` doit etre la
-    // ligne du compte connecte.
+    // Gestion des rendez-vous côté client et pro.
     'rdv-demander' => ['verbe' => 'POST', 'session' => true],
-    // La liste cote client. `session` parce que le seul moyen de savoir de qui
-    // lire les rendez-vous est le cookie : aucun identifiant n'entre dans la requete.
+    'rdv-annuler' => ['verbe' => 'PATCH', 'session' => true],
+    'pro-rdv-statut' => ['verbe' => 'PATCH', 'session' => true],
     'mes-rendez-vous' => ['verbe' => 'GET', 'session' => true],
 ];
 
@@ -75,9 +64,6 @@ function reponseJson(mixed $corps, int $statut): void
 $route = $_GET['route'] ?? '';
 $requete = ROUTES[$route] ?? null;
 
-// 404 avant 405 : une route qui n'existe pas n'a pas de verbe a annoncer. Dans la
-// version precedente le garde de methode tournait avant le switch, donc
-// POST ?route=inexistante repondait 405 et faisait exister la route.
 if ($requete === null) {
     reponseJson(['error' => 'Route non trouvée'], 404);
 }
@@ -91,9 +77,6 @@ if ($requete['session']) {
     Session::demarrerSiCookie();
 }
 
-// Une seule zone de garde : toute erreur non traitee (base injoignable, colonne
-// absente, dependance circulaire) meurt ici, dans le log serveur, et le client
-// ne recoit qu'un statut. getMessage() ne sort plus jamais.
 try {
     $pdo = (new Database())->connect();
 
@@ -118,9 +101,6 @@ try {
             $lundiBrut = trim((string) ($_GET['lundi'] ?? ''));
             $lundi = null;
             if ($lundiBrut !== '') {
-                // '!' : pas d'heure heritee de l'horloge courante. createFromFormat
-                // tolere les debordements ('2026-02-30' devient '2026-03-02'), donc
-                // seul un aller-retour identique prouve que la saisie etait reelle.
                 $lundiValide = DateTimeImmutable::createFromFormat('!Y-m-d', $lundiBrut);
                 if ($lundiValide === false || $lundiValide->format('Y-m-d') !== $lundiBrut) {
                     reponseJson(['error' => 'Date de semaine invalide, format attendu AAAA-MM-JJ'], 400);
@@ -142,10 +122,6 @@ try {
             break;
 
         case 'inscription':
-            // Le service recoit la connexion et ses trois repositories : c'est
-            // l'injection de dependances telle que le cours la demande, et elle a
-            // servi pour de vrai -- le harnais de preuve construit les memes
-            // objets sans passer par ce routeur.
             (new InscriptionController(new InscriptionService(
                 $pdo,
                 new UtilisateurRepository($pdo),
@@ -173,6 +149,8 @@ try {
 
         case 'rdv-demander':
         case 'mes-rendez-vous':
+        case 'rdv-annuler':
+        case 'pro-rdv-statut':
             $controller = new RendezVousController(
                 new RendezVousService(
                     $pdo,
@@ -187,8 +165,12 @@ try {
 
             if ($route === 'rdv-demander') {
                 $controller->demander();
-            } else {
+            } elseif ($route === 'mes-rendez-vous') {
                 $controller->mesRendezVous();
+            } elseif ($route === 'rdv-annuler') {
+                $controller->annuler();
+            } else {
+                $controller->changerStatut();
             }
             break;
 

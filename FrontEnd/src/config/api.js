@@ -172,3 +172,17 @@ export async function supprimerPrestation(idPrestation) {
 export async function rdvDemander(corps) {
     return ecritureV2('rdv-demander', 'POST', corps);
 }
+
+/**
+ * Annulation d'un rendez-vous par le client connecté.
+ */
+export async function rdvAnnuler(idRdv) {
+    return ecritureV2('rdv-annuler', 'PATCH', { id_rdv: idRdv });
+}
+
+/**
+ * Mise à jour du statut d'un rendez-vous par l'artisan connecté ('confirme', 'refuse', 'termine', 'annule').
+ */
+export async function proRdvStatut(idRdv, statut) {
+    return ecritureV2('pro-rdv-statut', 'PATCH', { id_rdv: idRdv, statut });
+}

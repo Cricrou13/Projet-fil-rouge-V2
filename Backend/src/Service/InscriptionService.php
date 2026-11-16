@@ -16,8 +16,6 @@ use Throwable;
 
 final class InscriptionService
 {
-    // Miroir serveur des 10 cles de FrontEnd/src/data/metiers.js (hors `default`,
-    // qui n'est pas un metier mais la couleur de repli du menu pro).
     private const METIERS = [
         'coiffure',
         'electricite',

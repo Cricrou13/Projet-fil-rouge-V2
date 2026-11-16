@@ -122,6 +122,49 @@ final class RendezVousService
         ];
     }
 
+    public function annulerParClient(int $idUtilisateur, int $idRdv): void
+    {
+        $idClient = $this->clients->idClientParIdUtilisateur($idUtilisateur);
+
+        if ($idClient === null) {
+            throw RendezVousException::sansEspaceClient();
+        }
+
+        $rdv = $this->rendezVous->trouverPourClient($idRdv, $idClient);
+
+        if ($rdv === null) {
+            throw RendezVousException::rdvIntrouvable();
+        }
+
+        if ($rdv['statut'] === 'annule' || $rdv['statut'] === 'refuse') {
+            throw RendezVousException::dejaAnnule();
+        }
+
+        $this->rendezVous->mettreAJourStatut($idRdv, 'annule');
+    }
+
+    public function changerStatutParArtisan(int $idUtilisateur, int $idRdv, string $statut): void
+    {
+        $statutsAutorises = ['en_attente', 'confirme', 'refuse', 'termine', 'annule'];
+        if (!in_array($statut, $statutsAutorises, true)) {
+            throw RendezVousException::champInvalide('Statut de rendez-vous non autorisé : ' . $statut);
+        }
+
+        $idArtisan = $this->artisans->idArtisanParIdUtilisateur($idUtilisateur);
+
+        if ($idArtisan === null) {
+            throw RendezVousException::champInvalide('Aucun compte artisan associé.');
+        }
+
+        $rdv = $this->rendezVous->trouverPourArtisan($idRdv, $idArtisan);
+
+        if ($rdv === null) {
+            throw RendezVousException::rdvIntrouvable();
+        }
+
+        $this->rendezVous->mettreAJourStatut($idRdv, $statut);
+    }
+
     private function idArtisan(mixed $valeur): int
     {
         $id = filter_var($valeur, FILTER_VALIDATE_INT);

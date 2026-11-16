@@ -1,141 +1,187 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { 
-  Briefcase, 
   Clock, 
   Plus, 
   Search, 
   Trash2, 
   CheckCircle2, 
-  Edit3, 
   Eye, 
   EyeOff, 
-  X,
-  Sparkles
+  X, 
+  Sparkles 
 } from "lucide-react";
 import "./Prestations.scss";
-// Données initiales réalistes pour la démo
-const initialServices = [
-  {
-    id: 1,
-    nom: "Coupe classique homme",
-    categorie: "Coupes",
-    duree: "30 min",
-    prix: 25,
-    description: "Shampoing traitant, coupe aux ciseaux et coiffage structuré.",
-    enLigne: true,
-  },
-  {
-    id: 2,
-    nom: "Coupe + Taille de barbe",
-    categorie: "Forfaits",
-    duree: "45 min",
-    prix: 35,
-    description: "Formule complète : coupe cheveux, rituel barbe à l'ancienne et serviette chaude.",
-    enLigne: true,
-  },
-  {
-    id: 3,
-    nom: "Taille de barbe sculptée",
-    categorie: "Barbe",
-    duree: "25 min",
-    prix: 18,
-    description: "Tracé des contours au rasoir droit, désépaississement et huile nourrissante.",
-    enLigne: true,
-  },
-  {
-    id: 4,
-    nom: "Coupe + Décoloration / Patine",
-    categorie: "Technique",
-    duree: "1h30",
-    prix: 65,
-    description: "Décoloration personnalisée, nuanceur patine et soin réparateur profond.",
-    enLigne: true,
-  },
-  {
-    id: 5,
-    nom: "Soin détox cuir chevelu",
-    categorie: "Soins",
-    duree: "20 min",
-    prix: 15,
-    description: "Gommage exfoliant doux, massage crânien relaxant et sérum tonifiant.",
-    enLigne: false,
-  },
-];
+import {
+  getPro,
+  creerPrestation,
+  changerVisibilitePrestation,
+  supprimerPrestation,
+} from "../../config/api";
+import { formatDuree } from "../../utils/formatDuree";
+
 export default function Prestations() {
-  const [prestations, setPrestations] = useState(initialServices);
+
+  // `categorie` n'existe dans aucune table : la colonne reste affichee mais
+  // vide, et les onglets se rempliraient d'eux-memes le jour ou la colonne arrive.
+  const toLigne = (p) => ({
+    id: p.id_prestation,
+    nom: p.libelle,
+    categorie: null,
+    duree: formatDuree(p.duree_estimee),
+    prix: Number(p.tarif),
+    description: p.description || "Aucune description renseignée.",
+    // actif = 1 seulement : coté client, une prestation actif = null est deja
+    // exclue par le SQL, donc « masquee » est le seul affichage coherent.
+    enLigne: p.actif === true,
+  });
+
+  const [prestations, setPrestations] = useState([]);
+  const [etat, setEtat] = useState("chargement");
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [notification, setNotification] = useState(null);
+  // Une seule écriture à la fois : deux clics sur « Enregistrer » créeraient deux
+  // lignes identiques, et la base n'a aucune raison de nous le pardonner.
+  const [ecriture, setEcriture] = useState(false);
   // Données du formulaire d'ajout
   const [newPresta, setNewPresta] = useState({
     nom: "",
-    categorie: "Coupes",
-    duree: "30 min",
+    categorie: "",
+    duree: "30",
     prix: "",
     description: "",
   });
-  // Liste des catégories uniques
-  const categories = ["all", "Coupes", "Barbe", "Forfaits", "Technique", "Soins"];
+
+  // Aucune identite ne sort du front ici : la session du serveur designe la
+  // fiche, le cookie part seul avec la requete. La relance apres chaque ecriture
+  // est deliberate : le tableau redevient la reponse de la base, pas ce que le clic
+  // esperait y voir.
+  const charger = () =>
+    getPro()
+      .then((data) => {
+        setPrestations((data.prestations ?? []).map(toLigne));
+        setEtat("ok");
+      })
+      .catch((err) => {
+        console.warn("⚠️ Catalogue pro inaccessible :", err.message);
+        setPrestations([]);
+        // 404 = le compte connecte n'a pas de ligne dans `artisans`.
+        // 401 = la session a expiree entre-temps, le bandeau le dit mieux qu'une erreur.
+        if (err.message === "404") setEtat("sans-fiche");
+        else if (err.message === "401") setEtat("aucun-compte");
+        else setEtat("erreur");
+      });
+
+  useEffect(() => {
+    charger();
+  }, []);
+
+  // Les catégories dépendent des données : aucune colonne en base aujourd'hui.
+  const categories = ["all", ...new Set(prestations.map((p) => p.categorie).filter(Boolean))];
   // Filtrage combiné (catégorie + texte de recherche)
   const filteredPrestations = useMemo(() => {
     return prestations.filter((p) => {
       const matchCategory = selectedCategory === "all" || p.categorie === selectedCategory;
       const matchSearch = p.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          p.description.toLowerCase().includes(searchTerm.toLowerCase());
+                          (p.description || "").toLowerCase().includes(searchTerm.toLowerCase());
       return matchCategory && matchSearch;
     });
   }, [prestations, selectedCategory, searchTerm]);
-  // Basculer la visibilité d'une prestation en ligne
-  const handleToggleOnline = (id) => {
-    setPrestations((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, enLigne: !p.enLigne } : p))
-    );
-    showToast("Statut de visibilité mis à jour.");
-  };
-  // Supprimer une prestation
-  const handleDelete = (id, nom) => {
-    if (window.confirm(`Voulez-vous vraiment supprimer la prestation "${nom}" ?`)) {
-      setPrestations((prev) => prev.filter((p) => p.id !== id));
-      showToast(`Prestation "${nom}" supprimée.`);
+  // Tout ce qui ecrit passe par la : la requete, puis la relecture, puis le mot.
+  // `succes` n'est montre que si le serveur a dit oui ; sinon c'est SA phrase qui
+  // sort (un 409 « rattachée à des rendez-vous » n'est pas une erreur technique).
+  const ecrire = async (action, succes) => {
+    setEcriture(true);
+    try {
+      await action();
+      await charger();
+      showToast(succes, "succes");
+      return true;
+    } catch (err) {
+      showToast(err.message, "erreur");
+      return false;
+    } finally {
+      setEcriture(false);
     }
   };
+
+  // Basculer la visibilité d'une prestation en ligne
+  const handleToggleOnline = (p) =>
+    ecrire(
+      () => changerVisibilitePrestation(p.id, !p.enLigne),
+      p.enLigne ? `« ${p.nom} » est masquée côté client.` : `« ${p.nom} » est en ligne.`
+    );
+
+  // Supprimer une prestation
+  const handleDelete = (p) => {
+    if (!window.confirm(`Voulez-vous vraiment supprimer la prestation « ${p.nom} » ?`)) return;
+    ecrire(() => supprimerPrestation(p.id), `« ${p.nom} » a été supprimée de la base.`);
+  };
+
   // Soumission du formulaire d'ajout
-  const handleAddSubmit = (e) => {
+  const handleAddSubmit = async (e) => {
     e.preventDefault();
     if (!newPresta.nom || !newPresta.prix) return;
-    const created = {
-      id: Date.now(),
-      nom: newPresta.nom,
-      categorie: newPresta.categorie,
-      duree: newPresta.duree,
-      prix: parseFloat(newPresta.prix),
-      description: newPresta.description || "Aucune description renseignée.",
-      enLigne: true,
-    };
-    setPrestations((prev) => [created, ...prev]);
-    setIsModalOpen(false);
-    setNewPresta({
-      nom: "",
-      categorie: "Coupes",
-      duree: "30 min",
-      prix: "",
-      description: "",
-    });
-    showToast(`Prestation "${created.nom}" ajoutée avec succès !`);
+
+    // `categorie` n'est pas envoye : aucune colonne ne le recueille en base.
+    const enregistre = await ecrire(
+      () =>
+        creerPrestation({
+          libelle: newPresta.nom,
+          description: newPresta.description,
+          // chaine : le serveur refuse un flottant, 0.1 n'existe pas en binaire.
+          tarif: String(newPresta.prix),
+          duree_estimee: Number(newPresta.duree),
+        }),
+      `« ${newPresta.nom} » est enregistrée en base.`
+    );
+
+    // Le formulaire ne se vide qu'en cas de succes : un refus du serveur doit
+    // laisser la saisie en place, sinon l'artisan repart de zero.
+    if (enregistre) {
+      setIsModalOpen(false);
+      setNewPresta({ nom: "", categorie: "", duree: "30", prix: "", description: "" });
+    }
   };
-  const showToast = (msg) => {
-    setNotification(msg);
-    setTimeout(() => setNotification(null), 3500);
+
+  const showToast = (msg, type = "succes") => {
+    setNotification({ msg, type });
+    setTimeout(() => setNotification(null), 4000);
   };
   return (
     <div className="prestations-page">
       
       {/* NOTIFICATION FLOTTANTE */}
       {notification && (
-        <div className="toast-notification">
-          <CheckCircle2 size={18} />
-          <span>{notification}</span>
+        <div className={`toast-notification ${notification.type === "erreur" ? "is-error" : ""}`}>
+          {notification.type === "erreur" ? <X size={18} /> : <CheckCircle2 size={18} />}
+          <span>{notification.msg}</span>
+        </div>
+      )}
+      {/* ETAT DU CATALOGUE */}
+      {etat === "chargement" && (
+        <div className="readonly-banner">Chargement du catalogue depuis la base…</div>
+      )}
+      {etat === "aucun-compte" && (
+        <div className="readonly-banner is-error">
+          Aucun compte artisan identifié : reconnecte-toi pour charger ton catalogue.
+        </div>
+      )}
+      {etat === "erreur" && (
+        <div className="readonly-banner is-error">
+          Catalogue inaccessible : le backend V2 ne répond pas sur la route « pro ».
+        </div>
+      )}
+      {etat === "sans-fiche" && (
+        <div className="readonly-banner is-error">
+         {/*  Ce compte n’a pas de fiche artisan associée : il n’a pas de catalogue à gérer. */}
+        </div>
+      )}
+      {etat === "ok" && (
+        <div className="readonly-banner">
+          {/* Catalogue chargé depuis la base. Ajouter, masquer et supprimer écrivent
+          vraiment dans la table prestations. */}
         </div>
       )}
       {/* EN-TÊTE DE LA PAGE */}
@@ -213,7 +259,9 @@ export default function Prestations() {
             {filteredPrestations.length === 0 ? (
               <tr>
                 <td colSpan={6} className="empty-table">
-                  Aucune prestation ne correspond à vos critères de recherche.
+                  {prestations.length > 0
+                    ? "Aucune prestation ne correspond à vos critères de recherche."
+                    : "Aucune prestation enregistrée pour ce compte artisan."}
                 </td>
               </tr>
             ) : (
@@ -224,7 +272,7 @@ export default function Prestations() {
                     <p className="desc">{p.description}</p>
                   </td>
                   <td>
-                    <span className="badge-cat">{p.categorie}</span>
+                    <span className="badge-cat">{p.categorie ?? "—"}</span>
                   </td>
                   <td className="td-duree">
                     <Clock size={15} />
@@ -237,8 +285,9 @@ export default function Prestations() {
                     <button
                       type="button"
                       className={`status-toggle ${p.enLigne ? "is-online" : "is-offline"}`}
-                      onClick={() => handleToggleOnline(p.id)}
+                      onClick={() => handleToggleOnline(p)}
                       title={p.enLigne ? "Cliquer pour masquer" : "Cliquer pour afficher"}
+                      disabled={ecriture}
                     >
                       {p.enLigne ? <Eye size={14} /> : <EyeOff size={14} />}
                       <span>{p.enLigne ? "En ligne" : "Masqué"}</span>
@@ -248,8 +297,9 @@ export default function Prestations() {
                     <button 
                       type="button" 
                       className="btn-delete"
-                      onClick={() => handleDelete(p.id, p.nom)}
+                      onClick={() => handleDelete(p)}
                       title="Supprimer la prestation"
+                      disabled={ecriture}
                     >
                       <Trash2 size={16} />
                     </button>
@@ -298,26 +348,26 @@ export default function Prestations() {
                     value={newPresta.categorie}
                     onChange={(e) => setNewPresta({ ...newPresta, categorie: e.target.value })}
                   >
-                    <option value="Coupes">Coupes</option>
-                    <option value="Barbe">Barbe</option>
-                    <option value="Forfaits">Forfaits</option>
-                    <option value="Technique">Technique</option>
-                    <option value="Soins">Soins</option>
+                    {categories.filter((cat) => cat !== "all").map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                   </select>
                 </div>
                 <div className="form-group">
                   <label htmlFor="duree">Durée estimée</label>
-                  <select 
+                  {/* Les valeurs sont des minutes : c'est ce que la colonne
+                      `duree_estimee` attend, et le tableau les reforme en « 1h30 ». */}
+                  <select
                     id="duree"
                     value={newPresta.duree}
                     onChange={(e) => setNewPresta({ ...newPresta, duree: e.target.value })}
                   >
-                    <option value="15 min">15 min</option>
-                    <option value="30 min">30 min</option>
-                    <option value="45 min">45 min</option>
-                    <option value="1h">1h00</option>
-                    <option value="1h30">1h30</option>
-                    <option value="2h">2h00</option>
+                    <option value="15">15 min</option>
+                    <option value="30">30 min</option>
+                    <option value="45">45 min</option>
+                    <option value="60">1h00</option>
+                    <option value="90">1h30</option>
+                    <option value="120">2h00</option>
                   </select>
                 </div>
               </div>
@@ -326,7 +376,7 @@ export default function Prestations() {
                 <input 
                   id="prix"
                   type="number" 
-                  step="0.5" 
+                  step="0.01"
                   min="0"
                   required 
                   placeholder="Ex: 35"
@@ -352,7 +402,7 @@ export default function Prestations() {
                 >
                   Annuler
                 </button>
-                <button type="submit" className="btn-save">
+                <button type="submit" className="btn-save" disabled={ecriture}>
                   Enregistrer la prestation
                 </button>
               </div>
